@@ -1,0 +1,9 @@
+{
+  "name": "test",
+  "matrix": [
+    [ "EMPTY", "EMPTY", "EMPTY", "EMPTY" ],
+    [ "EMPTY", "WALL", "WALL", "FOREST" ],
+    [ "EMPTY", "WALL", "EMPTY", "EMPTY" ],
+    [ "EMPTY", "EMPTY", "EMPTY", "EMPTY" ]
+  ]
+}

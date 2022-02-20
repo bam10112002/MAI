@@ -1,0 +1,10 @@
+﻿  Cell.cpp
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1_test_cels_and_alg\Lab_1_test_cels_and_alg\Cell.cpp(18,18): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1_test_cels_and_alg\Lab_1_test_cels_and_alg\Cell.cpp(24,18): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1_test_cels_and_alg\Lab_1_test_cels_and_alg\Cell.cpp(46,9): warning C4244: return: преобразование "double" в "int", возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1_test_cels_and_alg\Lab_1_test_cels_and_alg\Cell.cpp(77,18): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1_test_cels_and_alg\Lab_1_test_cels_and_alg\Cell.cpp(78,22): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+  main.cpp
+  Path.cpp
+  Создание кода...
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1_test_cels_and_alg\Lab_1_test_cels_and_alg\Path.cpp(17): error C4716: Path::find_path: должна возвращать значение
