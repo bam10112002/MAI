@@ -1,0 +1,10 @@
+{
+  "name": "test",
+  "matrix": [
+    [ "EMPTY" , "EMPTY" , "EMPTY" , "EMPTY" ],
+    [ "FOREST", "FOREST", "WALL"  , "WALL"  ],
+    [ "WALL"  , "FOREST", "WALL"  , "EMPTY" ],
+    [ "EMPTY" , "EMPTY" , "FOREST", "EMPTY" ],
+    [ "FOREST", "FOREST", "FOREST", "FOREST"]
+  ]
+}
