@@ -14,7 +14,7 @@ int Cell::calculate_approx(const Coord& cell_coord, const Coord& target_coord)
 	return (abs(cell_coord.x - target_coord.x) + abs(cell_coord.y - target_coord.y)) * int(Cell_Type::EMPTY);
 }
 
-Cell::Cell()
+Cell::Cell()	
 {
 	type = Cell_Type::NONE;
 	approx = waight = distanse = -1;
@@ -98,3 +98,37 @@ void Matrix::printMatrix()
 		std::cout << std::endl;
 	}
 }
+
+bool Matrix2::is_valid_coord(const Coord coord, const std::vector<std::vector<std::string>>& matrix_vec)
+{
+	if (coord.x >= 0 && coord.y >= 0 && coord.x < width && coord.y < height && int(convert[matrix_vec[coord.y][coord.x]]) > 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+Matrix2::Matrix2(nlohmann::json JSON_matr)
+{
+	std::vector<std::vector<std::string>> vector_matrix = JSON_matr["matrix"].get<std::vector<std::vector<std::string>>>();
+	height = vector_matrix.size();
+	width = vector_matrix[0].size();
+
+	for (int i = 0; i < height; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			if (this->is_valid_coord(Coord(j,i), vector_matrix)
+			{
+
+			}
+		}
+	}
+}
+
+std::map<std::string, Cell_Type> Matrix2::convert =
+{
+	std::pair<std::string, Cell_Type>(std::string("EMPTY") , Cell_Type::EMPTY),
+	std::pair<std::string, Cell_Type>(std::string("WALL")  , Cell_Type::WALL),
+	std::pair<std::string, Cell_Type>(std::string("FOREST"), Cell_Type::FOREST)
+};

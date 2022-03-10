@@ -22,6 +22,10 @@ public:
 		if (x == r.x && y == r.y) { return false; }
 		return true;
 	}
+	friend bool operator > (const Coord& l ,const Coord& r)
+	{
+		return true;
+	}
 };
 
 class Cell
@@ -62,3 +66,16 @@ public:
 	void printMatrix();
 };
 
+
+class Matrix2
+{
+	static std::map<std::string, Cell_Type> convert;
+	int width;
+	int height;
+	std::map<Coord, std::vector<Coord>> matr;
+	bool is_valid_coord(const Coord coord, const std::vector<std::vector<std::string>>& mart);
+
+public:
+	Matrix2(nlohmann::json JSON_matr);
+
+};

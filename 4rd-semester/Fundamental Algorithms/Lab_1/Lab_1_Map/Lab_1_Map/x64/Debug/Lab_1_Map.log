@@ -1,2 +1,36 @@
 ﻿  Find.cpp
-  Lab_1_Map.vcxproj -> C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1\Lab_1_Map\x64\Debug\Lab_1_Map.exe
+  Map.cpp
+  Matrix.cpp
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1\Lab_1_Map\Lab_1_Map\Matrix.cpp(20,18): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1\Lab_1_Map\Lab_1_Map\Matrix.cpp(26,18): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1\Lab_1_Map\Lab_1_Map\Matrix.cpp(58,9): warning C4244: return: преобразование "double" в "int", возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1\Lab_1_Map\Lab_1_Map\Matrix.cpp(76,31): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1\Lab_1_Map\Lab_1_Map\Matrix.cpp(77,33): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+  main.cpp
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.30.30705\include\xstddef(117,22): error C2676: бинарный "<": "const _Ty" не определяет этот оператор или преобразование к типу приемлемо к встроенному оператору
+          with
+          [
+              _Ty=Coord
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.30.30705\include\xstddef(116): message : во время компиляции функции-члена класс шаблон "bool std::less<Coord>::operator ()(const _Ty &,const _Ty &) const"
+          with
+          [
+              _Ty=Coord
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.30.30705\include\xutility(1421): message : выполняется компиляция ссылки на экземпляр шаблон функции "bool std::less<Coord>::operator ()(const _Ty &,const _Ty &) const"
+          with
+          [
+              _Ty=Coord
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.30.30705\include\xmemory(1356): message : выполняется компиляция ссылки на экземпляр класс шаблон функции "std::less<Coord>"
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.30.30705\include\xmemory(1356): message : выполняется компиляция ссылки на шаблон переменной "const bool is_empty_v<std::less<Coord> >"
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.30.30705\include\map(73): message : выполняется компиляция ссылки на экземпляр класс шаблон функции "std::_Tree<std::_Tmap_traits<_Kty,_Ty,_Pr,_Alloc,false>>"
+          with
+          [
+              _Kty=Coord,
+              _Ty=int,
+              _Pr=std::less<Coord>,
+              _Alloc=std::allocator<std::pair<const Coord,int>>
+          ]
+C:\Users\Artem\Documents\GitHub\MAI\4rd-semester\Fundamental Algorithms\Lab_1\Lab_1_Map\Lab_1_Map\main.cpp(11): message : выполняется компиляция ссылки на экземпляр класс шаблон функции "std::map<Coord,int,std::less<Coord>,std::allocator<std::pair<const Coord,int>>>"
+  Создание кода...

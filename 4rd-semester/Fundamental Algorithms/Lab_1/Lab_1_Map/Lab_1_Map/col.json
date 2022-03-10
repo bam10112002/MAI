@@ -1,0 +1,19 @@
+{
+  "cells": [
+    {
+      "name": "EMPTY",
+      "imgPath": "C:/Users/Artem/Documents/test/forest.jpg",
+      "cost": 10
+    },
+    {
+      "name": "WALL",
+      "imgPath": "C:/Users/Artem/Documents/test/grass.jpg",
+      "cost": -1
+    },
+    {
+      "name": "FOREST",
+      "imgPath": "C:/Users/Artem/Documents/test/rock.jpg",
+      "cost": 20
+    }
+  ]
+}

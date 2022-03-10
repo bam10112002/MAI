@@ -150,6 +150,7 @@
     <ClCompile Include="Matrix.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="col.json" />
     <None Include="map_1.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
