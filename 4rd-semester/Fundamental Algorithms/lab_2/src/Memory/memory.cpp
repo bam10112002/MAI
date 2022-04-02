@@ -1,10 +1,10 @@
 #include "memory.h"
 
 // Singleton
-Memory* Memory::memory= nullptr;
+Memory* Memory::memory = nullptr;
 Memory *Memory::GetInstance()
 {
-    if(memory==nullptr){
+    if(memory == nullptr){
         memory = new Memory();
     }
     return memory;
@@ -27,6 +27,12 @@ void Memory::print_data()
 }
 
 // Logic
+MemBlock::MemBlock(void* _addres, u16 _size)
+{
+    addres = _addres;
+    size = _size;
+}
+
 Memory::Memory()
 {
     if(!(memptr = (void*)malloc(20 * sizeof(char))))
@@ -43,6 +49,7 @@ Memory::~Memory()
         free(memptr);
 }
 
+
 void* Memory::m_malloc(size_t size)
 {
     for (auto block = available.begin(); block != available.end(); block++)
@@ -56,7 +63,7 @@ void* Memory::m_malloc(size_t size)
             (*block).size -= size;
 
             // Добавление блока в список занятых
-            reserved.push_front(MemBlock((char*)(*block).addres + (*block).size - size, size));
+            reserved.push_front(MemBlock((char*)(*block).addres + (*block).size, size));
 
             // Отчистка уже занятого блока
             if (!(*block).size)
@@ -64,46 +71,68 @@ void* Memory::m_malloc(size_t size)
 
             return ((char*)(*block).addres + (*block).size);
         }
-
     }
     return nullptr;
 }
 
 void Memory::m_free(void* ptr)
 {
-    // поиск блока
+    // Поиск блока
     auto it_res = reserved.begin();
     while((*it_res).addres != ptr)
     {
         if (it_res == reserved.end())
         {
+            // throw this->MemoryError("Hello");
             std::cout << "some error";
             exit(-1);
         }
         it_res++;
     }
 
-    // добавляем в свободный список
-    if (available.empty())
+    // Ищем место для освободивегося блока
+    auto it_av = available.begin();
+    while (it_av != available.end() && (*it_res).addres > (*it_av).addres)
     {
-        available.push_front(MemBlock((*it_res).addres, (*it_res).size));
-    } 
-    else 
+        it_av++;
+    }
+
+    // Переносим его из списка заняты в список со свободными
+    available.emplace(it_av, MemBlock((*it_res).addres, (*it_res).size));
+    reserved.erase(it_res);
+
+
+    // обединяем области перед освобожденным блоком и за ним
+    auto it = available.begin();
+    while((*it).addres != ptr)
     {
-        auto it_av = available.begin();
-        while ((*it_av).addres > (*it_res).addres)
-            it_av++;
+        if (it == available.end())
+        {
+            // throw this->MemoryError("Hello");
+            std::cout << "some error";
+            exit(-1);
+        }
+        it++;
+    }
 
-        available.emplace(it_av, MemBlock((*it_res).addres, (*it_res).size));
-
-        // if (it_av != available.begin())
-        // {
-        //     auto prev = --it_av;
-        //     ++it_av;
-        //     std::cout << (char*)(*it_av).addres - (char*)(*prev).addres << " | " <<  (*prev).size << std::endl;
-        // }
+    //MERGE
+    // Right block
+    auto next = ++it;
+    --it;
+    if (next != available.end() && (char*)(*it).addres + (*it).size == (char*)(*next).addres)
+    {
+        (*it).size += (*next).size;
+        available.erase(next);
+    }
+    
+    // Left block
+    auto prev = --it;
+    ++it;
+    if ((char*)(*prev).addres + (*prev).size == (char*)(*it).addres)
+    {
+        (*prev).size += (*it).size;
+        available.erase(it);
     }
 
 
-    reserved.erase(it_res);
 }

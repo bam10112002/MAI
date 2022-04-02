@@ -7,29 +7,18 @@
 
 #define MEMSIZE 100
 #define DELTA 8
-using u8 = u_int8_t;
-using u16 = u_int16_t;
-using u32 = u_int32_t;
-using u64 = u_int64_t;
+using u8 = uint8_t;
+using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
 
 
 class MemBlock
 {
 public:
+    MemBlock(void* _addres, u16 _size);
     void* addres;
     u16 size;
-    MemBlock(void* _addres, u16 _size)
-    {
-        addres = _addres;
-        size = _size;
-    }
-
-    //TODO: убрать
-    void print()
-    {
-        std::cout << addres  << " : " << size << std::endl;
-    }
-
 };
 
 
@@ -44,6 +33,7 @@ private:
 
 public:
     // Singleton
+    class MemoryError;
     Memory(Memory &other) = delete;
     void operator=(const Memory &) = delete;
     static Memory *GetInstance();
@@ -58,4 +48,9 @@ public:
     void m_free(void* ptr);
 };
 
+// class Memory::MemoryError : public std::exception
+// {
+// public:
+//     MemoryError(const char* err) : exception(err){}
+// }
 #endif
