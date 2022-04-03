@@ -35,11 +35,9 @@ MemBlock::MemBlock(void* _addres, u16 _size)
 
 Memory::Memory()
 {
-    if(!(memptr = (void*)malloc(20 * sizeof(char))))
+    if(!(memptr = (void*)malloc(MEMSIZE * sizeof(char))))
     {
-        std::cout << "mallock error: " << memptr << std::endl;
-        exit(-1);
-        //TODO: свой класс ошибок
+        throw stdMallocExeption();
     }
     available.push_front(MemBlock(memptr, MEMSIZE));
 }
@@ -83,8 +81,9 @@ void Memory::m_free(void* ptr)
     {
         if (it_res == reserved.end())
         {
+            // TODO: свой класс ошибок
             // throw this->MemoryError("Hello");
-            std::cout << "some error";
+            std::cout << "free( " << ptr <<" ): erorr" << std::endl <<"Aborted";
             exit(-1);
         }
         it_res++;

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <list>
 #include <iostream>
+#include "../Exeptions/exeptions.h"
 
 #define MEMSIZE 100
 #define DELTA 8
@@ -12,6 +13,13 @@ using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
 
+class MemAlocInterface
+{
+ public:
+    virtual void print_data() = 0;
+    virtual void* m_malloc(size_t size) = 0;
+    virtual void m_free(void* ptr) = 0;
+}
 
 class MemBlock
 {
@@ -20,7 +28,6 @@ public:
     void* addres;
     u16 size;
 };
-
 
 class Memory
 {
@@ -48,9 +55,4 @@ public:
     void m_free(void* ptr);
 };
 
-// class Memory::MemoryError : public std::exception
-// {
-// public:
-//     MemoryError(const char* err) : exception(err){}
-// }
 #endif

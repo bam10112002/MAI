@@ -1,13 +1,14 @@
-FLAG = -O2 -Wall -Werror -Wextra -std=c++17
-all:memory.o main.cpp
-	@g++ $(FLAG) memory.o main.cpp -o bin/main
+FLAG = -O2 -Wall -Wextra -std=c++17
+all:memory.o exeptions.o main.cpp
+	@g++ $(FLAG) memory.o exeptions.o main.cpp -o bin/main
 	@rm -rf *.o
 	@echo "all compile!"
 	@echo "main file added to bin/"
 
 memory.o: src/Memory/memory.h src/Memory/memory.cpp
 	@g++ $(FLAG) -c src/Memory/memory.cpp
-
+exeptions.o: src/Exeptions/exeptions.cpp src/Exeptions/exeptions.h
+	@g++ $(FLAG) -c src/Exeptions/exeptions.cpp
 
 test:memory.o main.cpp
 	@g++ -O2 -std=c++17 memory.o main.cpp -o bin/main

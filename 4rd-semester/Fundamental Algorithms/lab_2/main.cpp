@@ -13,16 +13,19 @@ void memTestPair2();
 
 int main()  
 {
+    memTest();
     memTestPair1();
     memTestPair2();
+
 
     return 0;
 }
 
 
-void memtest()
+void memTest()
 {
     Memory* memPtr = Memory::GetInstance();
+    
     void* ptr1 = memPtr->m_malloc(10);
     void* ptr2 = memPtr->m_malloc(10);
     void* ptr3 = memPtr->m_malloc(23);
