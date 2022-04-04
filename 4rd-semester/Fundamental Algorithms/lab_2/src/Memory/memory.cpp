@@ -1,6 +1,6 @@
 #include "memory.h"
 
-// Singleton
+//! Memory ============================================================
 Memory* Memory::memory = nullptr;
 Memory *Memory::GetInstance()
 {
@@ -9,9 +9,43 @@ Memory *Memory::GetInstance()
     }
     return memory;
 }
-
-// Test Funck
+Memory::Memory() : MemAllocInterface()
+{
+    // this->allocator = new SimpleAlloc();
+    allocator = new BorderAlloc();
+}
+Memory::~Memory()
+{
+    delete allocator;
+}
+void* Memory::m_malloc(size_t size)
+{
+    return allocator->m_malloc(size);
+}
+void Memory::m_free(void* ptr)
+{
+    allocator->m_free(ptr);
+}
 void Memory::print_data()
+{
+    allocator->print_data();
+}
+
+
+
+//! MemBlock ==========================================================
+// Logic
+MemBlock::MemBlock(void* _addres, u16 _size)
+{
+    addres = _addres;
+    size = _size;
+}
+
+
+
+//! SimpleAlloc ======================================================
+// Test Funck
+void SimpleAlloc::print_data()
 {
     std::cout << "Available: " << std::endl;
     for (auto obj : available)
@@ -27,13 +61,7 @@ void Memory::print_data()
 }
 
 // Logic
-MemBlock::MemBlock(void* _addres, u16 _size)
-{
-    addres = _addres;
-    size = _size;
-}
-
-Memory::Memory()
+SimpleAlloc::SimpleAlloc() : MemAllocInterface()
 {
     if(!(memptr = (void*)malloc(MEMSIZE * sizeof(char))))
     {
@@ -41,14 +69,12 @@ Memory::Memory()
     }
     available.push_front(MemBlock(memptr, MEMSIZE));
 }
-Memory::~Memory()
+SimpleAlloc::~SimpleAlloc()
 {
     if (memptr)
         free(memptr);
 }
-
-
-void* Memory::m_malloc(size_t size)
+void* SimpleAlloc::m_malloc(size_t size)
 {
     for (auto block = available.begin(); block != available.end(); block++)
     {
@@ -72,8 +98,7 @@ void* Memory::m_malloc(size_t size)
     }
     return nullptr;
 }
-
-void Memory::m_free(void* ptr)
+void SimpleAlloc::m_free(void* ptr)
 {
     // Поиск блока
     auto it_res = reserved.begin();
@@ -134,4 +159,174 @@ void Memory::m_free(void* ptr)
     }
 
 
+}
+
+//! BorderAlloc =====================================================
+BorderAlloc::BorderAlloc() : MemAllocInterface()
+{
+    if(!(memptr = (void*)malloc(MEMSIZE * sizeof(char))))
+    {
+        throw stdMallocExeption();
+    }
+
+    *(static_cast<i16*>(memptr)) = (-1) * (MEMSIZE - 2 * static_cast<i16>(sizeof(i16)));
+    *(reinterpret_cast<i16*>(static_cast<char*>(memptr) + MEMSIZE - sizeof(i16))) = (-1) * (MEMSIZE - 2 * static_cast<i16>(sizeof(i16)));
+}
+BorderAlloc::~BorderAlloc()
+{
+    if (memptr)
+        free(memptr);
+}
+void BorderAlloc::print_data()
+{
+    auto it = ItBegin();
+    while (!(it == ItEnd()))
+    {
+        if (it.isReserved())
+            std::cout << "Reserved: ";
+        else
+            std::cout << "Avalable: ";
+
+        std::cout << it.size() << std::endl;
+        it++;
+    }
+}
+void* BorderAlloc::m_malloc(size_t size)
+{
+    auto it = ItBegin();
+    while (!(it == ItEnd()))
+    {
+        if (!(it.isReserved()) && it.size() >= static_cast<i16>(size))
+        {
+            if (it.size() -  static_cast<i16>(size) <= static_cast<int>(sizeof(i16) * 2))
+                size = it.size();
+            if (it.size() ==  static_cast<i16>(size))
+            {
+                void* ptr = it.getPointer();
+                *(static_cast<char*>(ptr) + abs(*static_cast<i16*>(ptr))) *= -1;
+                *static_cast<i16*>(ptr) *= -1;
+                return NULL;
+            }
+            else 
+            {
+                i16 itSize = it.size();
+                char* ptr = static_cast<char*>(it.getPointer());
+                void* resPtr;
+
+                // задаем первый блок
+                *(reinterpret_cast<i16*>(ptr)) = (abs(itSize) - size - 2 * sizeof(i16)) * (-1);
+                ptr += (abs(itSize) - size - 2 * sizeof(i16)) + sizeof(i16);
+                *(reinterpret_cast<i16*>(ptr)) = (abs(itSize) - size - 2 * sizeof(i16)) * (-1);
+
+                // задаем второй блок
+                ptr += sizeof(i16);
+                *(reinterpret_cast<i16*>(ptr)) = size;
+                resPtr = ptr;
+                ptr +=  sizeof(i16) + size;
+                *(reinterpret_cast<i16*>(ptr)) = size;
+
+                return resPtr;
+            }
+        }
+        it++;
+    }
+    return NULL;
+}
+void BorderAlloc::m_free(void* ptr)
+{
+    auto it = ItBegin();
+    while (!(it == ItEnd()))   
+    {
+        if (it.getPointer() == ptr)
+        {
+            // удаление
+            // if (it != ItBegin())
+            // {
+            //     auto prev = it--;
+            //     it
+            
+            // }
+            
+            // auto next = it++;
+            // if (next != ItEnd())
+            // {
+
+            // }
+
+            
+            // auto next = it++;
+            // it--;
+            // auto prev = it--;
+            // it++;
+            *static_cast<i16*>(ptr) = -1 * it.size();
+            *reinterpret_cast<i16*>(static_cast<char*>(ptr) + sizeof(i16)+ it.size()) = -1 * it.size();
+
+            auto next = it++;
+            it--;
+            if (!(next == ItEnd()) && !(next.isReserved()))
+            {
+                *static_cast<i16*>(ptr) = (-1) * (next.size() + it.size() + 2 * sizeof(i16));
+                *(static_cast<char*>(ptr) + it.size() + sizeof(i16)) = it.size() * (-1);
+            }
+            if (!(it == ItBegin()))
+            {
+                auto prev = it--;
+                it++;
+                if (!(prev.isReserved()))
+                {
+                    ptr = prev.getPointer();
+                    *static_cast<i16*>(ptr) = (-1) * (it.size() + prev.size() + 2 * sizeof(i16));
+                    *(static_cast<char*>(ptr) + prev.size() + sizeof(i16)) = prev.size() * (-1);
+                }
+            }
+            break;
+        }
+        it++;
+    }
+    // TODO: ошибка
+}
+
+// Sourse
+BorderAlloc::Iterator BorderAlloc::ItBegin()
+{
+    return Iterator(memptr);
+}
+BorderAlloc::Iterator BorderAlloc::ItEnd()
+{
+    return Iterator(static_cast<char*>(memptr) + MEMSIZE);
+}
+
+// Iterator
+BorderAlloc::Iterator::Iterator(void* _ptr)
+{
+    ptr = _ptr;
+}
+bool BorderAlloc::Iterator::isReserved()
+{
+    return *(static_cast<i16*>(ptr)) > 0;
+}
+i16 BorderAlloc::Iterator::size()
+{
+    return abs(*(static_cast<i16*>(ptr)));
+}
+BorderAlloc::Iterator BorderAlloc::Iterator::operator++(int)
+{
+    ptr = static_cast<char*>(ptr) + abs(*(static_cast<i16*>(ptr))) + 2 * sizeof(i16);
+    return *this;
+}
+BorderAlloc::Iterator BorderAlloc::Iterator::operator--(int)
+{
+    // ptr = static_cast<char*>(ptr) - abs(*(static_cast<i16*>(ptr)));
+    ptr = static_cast<char*>(ptr) - sizeof(i16);
+    // std::cout << *static_cast<i16*>(ptr) << std::endl;
+    ptr = static_cast<char*>(ptr) - abs(*static_cast<i16*>(ptr)) - sizeof(i16);
+    return *this;
+}
+bool BorderAlloc::Iterator::operator==(const BorderAlloc::Iterator & right) const
+{
+    return ptr == right.ptr;
+}
+void* BorderAlloc::Iterator::getPointer()
+{
+    return ptr;
 }

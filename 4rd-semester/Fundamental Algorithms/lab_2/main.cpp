@@ -13,10 +13,22 @@ void memTestPair2();
 
 int main()  
 {
-    memTest();
-    memTestPair1();
-    memTestPair2();
+    // memTest();
+    // memTestPair1();
+    // memTestPair2();
+    Memory* mem = Memory::GetInstance();
+    auto ptr1 = mem->m_malloc(10);
+    auto ptr2 = mem->m_malloc(2);
+    auto ptr3 = mem->m_malloc(17);
 
+    mem->m_free(ptr1);
+    mem->print_data();
+    std::cout << "====================================" << std::endl;
+    mem->m_free(ptr2);
+    mem->print_data();
+    std::cout << "====================================" << std::endl;
+    mem->m_free(ptr3);
+    mem->print_data();
 
     return 0;
 }
@@ -31,13 +43,13 @@ void memTest()
     void* ptr3 = memPtr->m_malloc(23);
     void* ptr4 = memPtr->m_malloc(2);
 
+    memPtr->print_data();
 
     memPtr->m_free(ptr1);
     memPtr->m_free(ptr3);
     memPtr->m_free(ptr2);
     memPtr->m_free(ptr4);
 
-    memPtr->print_data();
 }
 void memTestPair1()
 {
