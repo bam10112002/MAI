@@ -18,20 +18,13 @@ void memTest2();
 int main()  
 {
     Memory* mem = Memory::GetInstance();
-    void* ptr = mem->m_malloc(12);
-    // mem->print_data();
-    void* ptr2 = mem->m_malloc(12);
-    // mem->print_data();
-    
-    if (ptr2 > ptr)
-    {
-        std::cout << "true";
-        mem->m_free(ptr2);
-    }
+    void* ptr = mem->m_malloc(64);
+    void* ptr2 = mem->m_malloc(64);
+
+    mem->m_free(ptr);
+    mem->m_free(ptr2);
     mem->print_data();
-    // memTest();
-    // memTestPair1();
-    // memTestPair2();
+ 
 
     return 0;
 }

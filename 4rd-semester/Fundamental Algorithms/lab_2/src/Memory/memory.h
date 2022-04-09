@@ -94,19 +94,19 @@ class BorderAlloc : public MemAllocInterface
 class TwinAlloc : public MemAllocInterface
 {
  private:
-    void* memptr;
-    std::vector<std::list<void*>> aviableList;
-    std::vector<std::list<void*>> reservedList;
+   void* memptr;
+   std::vector<std::list<void*>> aviableList;
+   std::vector<std::list<void*>> reservedList;
 
-    void* mergeRec(void*& ptr, int& k);
+   void* mergeRec(void* ptr, int& k);
 
  public:
-    TwinAlloc();
-    ~TwinAlloc();
+   TwinAlloc();
+   ~TwinAlloc();
 
-    void print_data() override;
-    void* m_malloc(size_t size) override;
-    void m_free(void* ptr) override;
+   void print_data() override;
+   void* m_malloc(size_t size) override;
+   void m_free(void* ptr) override;
 };
 
 // main memory class

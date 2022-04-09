@@ -1,6 +1,6 @@
-FLAG = -O2 -Wall -Wextra -std=c++17
+FLAG = -Wall -Wextra -std=c++17
 all:memory.o exeptions.o main.cpp
-	@g++ $(FLAG) memory.o exeptions.o main.cpp -o bin/main
+	@g++ memory.o exeptions.o main.cpp -o bin/main
 	@rm -rf *.o
 	@echo "all compile!"
 	@echo "main file added to bin/"
@@ -8,7 +8,7 @@ all:memory.o exeptions.o main.cpp
 memory.o: src/Memory/memory.h src/Memory/memory.cpp
 	@g++ $(FLAG) -c src/Memory/memory.cpp
 exeptions.o: src/Exeptions/exeptions.h src/Exeptions/exeptions.cpp
-	@g++ $(FLAG) -c src/Exeptions/exeptions.cpp
+	@g++ -c src/Exeptions/exeptions.cpp
 
 test:memory.o main.cpp
 	@g++ -O2 -std=c++17 memory.o main.cpp -o bin/main
@@ -31,4 +31,6 @@ gdb:
 	layout next
 valgrind: memory.o exeptions.o main.cpp
 	g++ -O0 -g memory.o exeptions.o main.cpp -o bin/main
-	valgrind --leak-check=full --track-origins=yes ./bin/main
+	g++ $(FLAG) -c -g src/Memory/memory.cpp
+	g++ $(FLAG) -c -g src/Exeptions/exeptions.cpp
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./bin/main

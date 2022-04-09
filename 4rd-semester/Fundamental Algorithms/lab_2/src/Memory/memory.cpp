@@ -36,7 +36,6 @@ void Memory::print_data()
 
 
 //! MemBlock ==========================================================
-// Logic
 MemBlock::MemBlock(void* _addres, u16 _size)
 {
     addres = _addres;
@@ -331,34 +330,38 @@ TwinAlloc::~TwinAlloc()
     free(memptr);
 }
 
-void* TwinAlloc::mergeRec(void* & ptr, int & k)
+void* TwinAlloc::mergeRec(void* ptr, int & k)
 {
-    if ((long long int)(ptr) % static_cast<int>(pow(2, k+1)))
+    void* twin = nullptr;
+    if ((unsigned long int)(ptr) % static_cast<int>(pow(2,k+1)) == 0)
     {
-        std::list<void*>::iterator it = std::find(aviableList[k].begin(), aviableList[k].end(), static_cast<char*>(ptr) - static_cast<int>(pow(2,k)));
-        // std::cout << (it != aviableList[k].end()) << std::endl;
-        if(it != aviableList[k].end())
+        twin = static_cast<char*>(ptr) - static_cast<int>(pow(2,k));
+    }
+    else
+    {
+        twin = static_cast<char*>(ptr) + static_cast<int>(pow(2,k));
+    }
+
+    auto it = std::find(aviableList[k].begin(), aviableList[k].end(), twin);
+    if (it != aviableList[k].end())
+    {
+        aviableList[k].erase(it);
+        aviableList[k].erase(std::find(aviableList[k].begin(), aviableList[k].end(), ptr));
+        k++;
+        if (twin > ptr)
         {
-            aviableList[k].erase(it);
-            aviableList[k].erase(std::find(aviableList[k].begin(), aviableList[k].end(), ptr));
-            aviableList[k+1].push_back(ptr);
-            ptr = static_cast<char*>(ptr) - static_cast<int>(pow(2,k));
-            k++; 
-            // mergeRec(ptr, k);
+            aviableList[k].push_front(ptr);
+            ptr = mergeRec(ptr, k);
+        }
+        else
+        {
+            aviableList[k].push_front(twin);
+            ptr = mergeRec(twin, k);
         }
     }
-    // else
-    // {
-    //     if (std::find(aviableList[k].begin(), aviableList[k].end(), static_cast<char*>(ptr) + static_cast<int>(pow(2,k)))  != aviableList[k].end())
-    //     {
-    //         auto it = std::find(aviableList[k].begin(), aviableList[k].end(), ptr + pow(2,k));
-    //         aviableList[k].erase(it);
-    //         aviableList[k].erase(std::find(aviableList[k].begin(), aviableList[k].end(), ptr));
-    //         aviableList[k+1].push_back(ptr);
-    //         mergeRec(ptr, k+1);
-    //     }
-    // }
+    return ptr;
 }
+
 void TwinAlloc::print_data()
 {
     int i = 0;
@@ -390,25 +393,25 @@ void TwinAlloc::print_data()
 void* TwinAlloc::m_malloc(size_t size)
 {
     int k = ceil(log2(size));
-    int find = k;
-    while (find <= log2(MEMSIZE) && aviableList[find].empty())
+    int find_k = k;
+    while (find_k <= log2(MEMSIZE) && aviableList[find_k].empty())
     {
-        find++;
+        find_k++;
     }
-    if (find > log2(MEMSIZE))
+    if (find_k > log2(MEMSIZE))
     {
         return nullptr;
     }
 
-    while (find > k)
+    while (find_k > k)
     {
-        aviableList[find-1].push_back(aviableList[find].front());
-        aviableList[find-1].push_back(static_cast<char*>(aviableList[find].front()) + static_cast<int>(pow(2,find-1)));
-        aviableList[find].pop_front();
-        find--;
+        aviableList[find_k-1].push_back(aviableList[find_k].front());
+        aviableList[find_k-1].push_back(static_cast<char*>(aviableList[find_k].front()) + static_cast<int>(pow(2,find_k-1)));
+        aviableList[find_k].pop_front();
+        find_k--;
     }
-    void* ptr = aviableList[find].front();
-    aviableList[find].pop_front();
+    void* ptr = aviableList[find_k].front();
+    aviableList[find_k].pop_front();
     reservedList[k].push_back(ptr);
     return ptr;
 }
@@ -420,10 +423,11 @@ void TwinAlloc::m_free(void* ptr)
         auto it = std::find(list.begin(), list.end(), ptr);
         if (it != list.end())
         {
-            mergeRec(ptr, k);
             reservedList[k].erase(std::find(reservedList[k].begin(), reservedList[k].end(), ptr));
             aviableList[k].push_back(ptr);
+            ptr = mergeRec(ptr, k);
         }
+        
         k++;
     }
 }
