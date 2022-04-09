@@ -19,7 +19,7 @@ std::string GenerateDraw::operator()(const std::string & sportloto)
         }
 
         status[sportloto.c_str()]["draw"] = draw;
-        status[sportloto.c_str()]["status"] = std::string("start");
+        // status[sportloto.c_str()]["status"] = std::string("start");
         std::ofstream of("conf/status.json");
         of << status;
     }

@@ -284,14 +284,14 @@ bool Sportloto_4_20::addWining(json& ticket, const std::vector<std::vector<int>>
 
     return false;
 }
-// void Sportloto_4_20::recalcWin(json& ticket){}
-void Sportloto_4_20::recalcVec()
-{
-    for (int i = 0; i < 12; i++)
-    {
-        numericalPrizeVector[i] *= prizeVector 
-    }
-}
+// // void Sportloto_4_20::recalcWin(json& ticket){}
+// void Sportloto_4_20::recalcVec()
+// {
+//     for (int i = 0; i < 12; i++)
+//     {
+//         numericalPrizeVector[i] *= prizeVector 
+//     }
+// }
 
 
 Sportloto_5_36::Sportloto_5_36()

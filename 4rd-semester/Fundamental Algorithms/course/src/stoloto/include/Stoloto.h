@@ -64,7 +64,7 @@ class Sportloto_4_20  : public Sportloto
 
    std::pair<int,int> calcWin(const std::vector<std::vector<int>> & ticketVec,const std::vector<std::vector<int>> & winVec);
    // void recalcWin(json& ticket);
-   void recalcVec();
+  //  void recalcVec();
  
  public:
 

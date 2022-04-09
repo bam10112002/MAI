@@ -3,10 +3,13 @@
 
 #include <stdlib.h>
 #include <list>
+#include <vector>
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 #include "../Exeptions/exeptions.h"
 
-#define MEMSIZE 100
+#define MEMSIZE 128
 #define DELTA 8
 
 using u8 = uint8_t;
@@ -52,6 +55,7 @@ class SimpleAlloc : public MemAllocInterface
     void m_free(void* ptr) override;
 };
 
+
 class BorderAlloc : public MemAllocInterface
 {
  private:
@@ -84,6 +88,25 @@ class BorderAlloc : public MemAllocInterface
     void* m_malloc(size_t size) override;
     void m_free(void* ptr) override;
 
+};
+
+// using PList = std::list<void*>;
+class TwinAlloc : public MemAllocInterface
+{
+ private:
+    void* memptr;
+    std::vector<std::list<void*>> aviableList;
+    std::vector<std::list<void*>> reservedList;
+
+    void* mergeRec(void*& ptr, int& k);
+
+ public:
+    TwinAlloc();
+    ~TwinAlloc();
+
+    void print_data() override;
+    void* m_malloc(size_t size) override;
+    void m_free(void* ptr) override;
 };
 
 // main memory class

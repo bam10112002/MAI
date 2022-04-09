@@ -12,7 +12,7 @@ Memory *Memory::GetInstance()
 Memory::Memory() : MemAllocInterface()
 {
     // this->allocator = new SimpleAlloc();
-    allocator = new BorderAlloc();
+    allocator = new TwinAlloc();
 }
 Memory::~Memory()
 {
@@ -20,6 +20,8 @@ Memory::~Memory()
 }
 void* Memory::m_malloc(size_t size)
 {
+    if (size <= 0)
+        return nullptr;
     return allocator->m_malloc(size);
 }
 void Memory::m_free(void* ptr)
@@ -239,25 +241,6 @@ void BorderAlloc::m_free(void* ptr)
     {
         if (it.getPointer() == ptr)
         {
-            // удаление
-            // if (it != ItBegin())
-            // {
-            //     auto prev = it--;
-            //     it
-            
-            // }
-            
-            // auto next = it++;
-            // if (next != ItEnd())
-            // {
-
-            // }
-
-            
-            // auto next = it++;
-            // it--;
-            // auto prev = it--;
-            // it++;
             *static_cast<i16*>(ptr) = -1 * it.size();
             *reinterpret_cast<i16*>(static_cast<char*>(ptr) + sizeof(i16)+ it.size()) = -1 * it.size();
 
@@ -329,4 +312,118 @@ bool BorderAlloc::Iterator::operator==(const BorderAlloc::Iterator & right) cons
 void* BorderAlloc::Iterator::getPointer()
 {
     return ptr;
+}
+
+
+//! TwinAlloc =====================================================
+TwinAlloc::TwinAlloc() : MemAllocInterface(), aviableList(static_cast<int>(log2(MEMSIZE)) + 1), reservedList(static_cast<int>(log2(MEMSIZE)) + 1)
+{
+    memptr = (void*)malloc(MEMSIZE * sizeof(char));
+    if(memptr == NULL)
+    {
+        std::cout << "Memptr = " << memptr << std::endl;
+        throw stdMallocExeption();
+    }
+    aviableList[static_cast<int>(log2(MEMSIZE))].push_back(memptr);
+}
+TwinAlloc::~TwinAlloc()
+{
+    free(memptr);
+}
+
+void* TwinAlloc::mergeRec(void* & ptr, int & k)
+{
+    if ((long long int)(ptr) % static_cast<int>(pow(2, k+1)))
+    {
+        std::list<void*>::iterator it = std::find(aviableList[k].begin(), aviableList[k].end(), static_cast<char*>(ptr) - static_cast<int>(pow(2,k)));
+        // std::cout << (it != aviableList[k].end()) << std::endl;
+        if(it != aviableList[k].end())
+        {
+            aviableList[k].erase(it);
+            aviableList[k].erase(std::find(aviableList[k].begin(), aviableList[k].end(), ptr));
+            aviableList[k+1].push_back(ptr);
+            ptr = static_cast<char*>(ptr) - static_cast<int>(pow(2,k));
+            k++; 
+            // mergeRec(ptr, k);
+        }
+    }
+    // else
+    // {
+    //     if (std::find(aviableList[k].begin(), aviableList[k].end(), static_cast<char*>(ptr) + static_cast<int>(pow(2,k)))  != aviableList[k].end())
+    //     {
+    //         auto it = std::find(aviableList[k].begin(), aviableList[k].end(), ptr + pow(2,k));
+    //         aviableList[k].erase(it);
+    //         aviableList[k].erase(std::find(aviableList[k].begin(), aviableList[k].end(), ptr));
+    //         aviableList[k+1].push_back(ptr);
+    //         mergeRec(ptr, k+1);
+    //     }
+    // }
+}
+void TwinAlloc::print_data()
+{
+    int i = 0;
+    for (auto kList : aviableList)
+    {
+        if (!kList.empty())
+        {
+            for (auto obg : kList)
+            {
+                std::cout << "AVIABLE: pointer = " << obg << "; size = " << pow(2,i) << std::endl;
+            }
+        }
+        i++;
+    }
+    std::cout << "=====================>>><<<<====================" << std::endl;
+    i = 0;
+    for (auto kList : reservedList)
+    {
+        if (!kList.empty())
+        {
+            for (auto obg : kList)
+            {
+                std::cout << "Resolved: pointer = " << obg << "; size = " << pow(2,i) << std::endl;
+            }
+        }
+        i++;
+    }
+}
+void* TwinAlloc::m_malloc(size_t size)
+{
+    int k = ceil(log2(size));
+    int find = k;
+    while (find <= log2(MEMSIZE) && aviableList[find].empty())
+    {
+        find++;
+    }
+    if (find > log2(MEMSIZE))
+    {
+        return nullptr;
+    }
+
+    while (find > k)
+    {
+        aviableList[find-1].push_back(aviableList[find].front());
+        aviableList[find-1].push_back(static_cast<char*>(aviableList[find].front()) + static_cast<int>(pow(2,find-1)));
+        aviableList[find].pop_front();
+        find--;
+    }
+    void* ptr = aviableList[find].front();
+    aviableList[find].pop_front();
+    reservedList[k].push_back(ptr);
+    return ptr;
+}
+void TwinAlloc::m_free(void* ptr)
+{
+    int k = 0;
+    for (auto list : reservedList)
+    {
+        auto it = std::find(list.begin(), list.end(), ptr);
+        if (it != list.end())
+        {
+            mergeRec(ptr, k);
+            reservedList[k].erase(std::find(reservedList[k].begin(), reservedList[k].end(), ptr));
+            aviableList[k].push_back(ptr);
+        }
+        k++;
+    }
 }
