@@ -1,7 +1,7 @@
 // #include "genDraw.h"
 #include "../include/Stoloto.h"
 
-std::string GenerateDraw::operator()(const std::string & sportloto)
+void GenerateDraw::operator()(const std::string & sportloto)
 {
     std::string path = "";
     json status = getStatusJson();
@@ -19,7 +19,6 @@ std::string GenerateDraw::operator()(const std::string & sportloto)
         }
 
         status[sportloto.c_str()]["draw"] = draw;
-        // status[sportloto.c_str()]["status"] = std::string("start");
         std::ofstream of("conf/status.json");
         of << status;
     }
@@ -29,7 +28,6 @@ std::string GenerateDraw::operator()(const std::string & sportloto)
         std::cout << "error draw sale is not ended please wait" << std::endl;
         exit(-1);
     }
-    return path;
 }
 
 std::string GenerateDraw::getDatasetPath()

@@ -8,23 +8,17 @@ using namespace std;
 
 int main()
 {
-    std::string lot = "7_49";
-    Lottery lottery;
+    Sportloto* lot = new Sportloto_7_49; 
+    Lottery lottery(lot, 20);
 
     uint64_t time2;
     auto start = std::chrono::high_resolution_clock::now();
-    lottery.genDraw(lot);
-    lottery.sale(lot, 6000000);
-    time2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-start).count();
-    std::cout << "Time = " << time2  << std::endl;
 
+    lottery.GenDraw();
+    lottery.SimSale();
 
-    // std::string lot2 = "6_45";
-    start = std::chrono::high_resolution_clock::now();
-    lottery.genDraw(lot);
-    lottery.sale(lot, 6000000);
     time2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-start).count();
-    std::cout << "Time = " << time2  << std::endl;
+    std::cout << "Sale time = " << time2  << " milsec" << std::endl;
 
     return 0;
 }

@@ -1,4 +1,3 @@
-// #include "simulateSale.h"
 #include "../include/Stoloto.h"
 
 void generateNum(const int border, std::vector<int> & vec)
@@ -43,9 +42,27 @@ json SimulateSale::getStatusJson()
     return status;
 }
 
+//Loterey
+Lottery::Lottery(Sportloto* _lot, u64 _drawSize)
+{
+    lot = _lot;
+    drawSize = _drawSize;
+    saled = 0;
+    fileSize = static_cast<u16>(500000);
+}
+
+void Lottery::GenDraw()
+{
+    genDraw(lot->getName());
+}
+void Lottery::SimSale()
+{
+    saled = sale(lot, drawSize, fileSize);
+}
+void Lottery::FinishLottery(){}
 
 void SimulateSale::genPackTicketsTh(Sportloto & lot, std::list<nlohmann::json> & l, u32 & currid,
-std::mutex & mtx, const u32 numOfTickets)
+std::mutex & mtx, const u64 numOfTickets, u32 & saled)
 {
     nlohmann::json ticket = {};
     u32 id;
@@ -55,28 +72,27 @@ std::mutex & mtx, const u32 numOfTickets)
         id = ++currid;
         mtx.unlock();
 
-        lot.genTicket(id, ticket);
+        saled += lot.genTicket(id, ticket);
         l.push_back(ticket);
-        // *saled += static_cast<int>(ticket["sale"]);
     }
 }
 
-void SimulateSale::genPackTickets(Sportloto* lot, std::list<nlohmann::json> & l, u32 & currid, const u32 numOfTickets)
+u32 SimulateSale::genPackTickets(Sportloto* lot, std::list<nlohmann::json> & l, u32 & currid, const u32 numOfTickets)
 {
     std::mutex mtx;
     std::list<nlohmann::json> l1, l2, l3, l4, l5;
-    // int saled1 = , saled2 = 0, saled3 = 0, saled4 = 0, saled5 = 0; 
+    u32 saled1 = 0, saled2 = 0, saled3 = 0, saled4 = 0, saled5 = 0; 
 
     std::thread th1(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l1),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5);
+                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled1));
     std::thread th2(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l2),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5);
+                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled2));
     std::thread th3(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l3),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5);
+                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled3));
     std::thread th4(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l4),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5);
+                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled4));
     std::thread th5(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l5),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5);
+                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled5));
     th1.join();
     th2.join();
     th3.join();
@@ -89,64 +105,50 @@ void SimulateSale::genPackTickets(Sportloto* lot, std::list<nlohmann::json> & l,
     l1.merge(l5);
     l.merge(l1);
 
-    // saled += saled1 + saled2 + saled3 + saled4 + saled5;
+    return (saled1 + saled2 + saled3 + saled4 + saled5);
 }
 
-void SimulateSale::operator()(const std::string & sportloto, const u32 numOfTickets)
+u32 SimulateSale::operator()(Sportloto* lot, const u64 drawSize, const u64 Fsize)
 {
-    const u32 FSize = 500000;
-    Sportloto* lot = new Sportloto_7_49();
-    std::string path;
+    std::string basePath;
     json status = getStatusJson();
-
-    int draw = status[sportloto.c_str()]["draw"].get<int>();
-    path = getDatasetPath() + sportloto + "/" + std::to_string(draw);
-
     u32 currid = 0;
-    // u32 saled = 0;
+    u32 saled = 0;
+
+    int draw = status[lot->getName().c_str()]["draw"].get<int>();
+    basePath = getDatasetPath() + lot->getName() + "/" + std::to_string(draw);
+
+
     std::list<nlohmann::json> list;
     nlohmann::json tickets = {};
 
-    for (u32 i = 0; i < numOfTickets / FSize; i++)
+    for(u32 i = 0; i <= drawSize / Fsize; i++)
     {
-        // Эмуляция продажи билетов
-        currid = i * FSize;
-        genPackTickets(lot, list, currid, FSize);
+        u32 endInd = std::min((i+1) * Fsize, drawSize);
+        saled += genPackTickets(lot, list, currid, endInd - currid);
         tickets["mainVector"] = list;
 
-        //Запись в файл
-        std::string p2 = path + "/" +   std::to_string(i*FSize) + "-" + std::to_string((i+1)*FSize) + ".json";
-        std::cout <<"create: " << p2 << std::endl;
-        std::ofstream of(p2);
+        // Запись проданных билетов в файл
+        std::string path = basePath + "/" +   std::to_string(i * Fsize) + "-" + std::to_string(endInd) + ".json";
+        std::ofstream of(path);
         of << tickets;
-        // std::cout << tickets;
+        std::cout <<"create: " << path << std::endl; //TODO: дебагерская тема в проде стоит убрать
 
         // Очистка данных 
         list.clear();
         tickets.clear();
     }
 
-    // Эмуляция продажи билетов
-    currid = numOfTickets - numOfTickets % FSize;
-    genPackTickets(lot, list, currid, numOfTickets % FSize);
-    tickets["mainVector"] = list;
-
-    //Запись в файл
-    std::string p2 = path + "/" + std::to_string(numOfTickets - numOfTickets % FSize) + "-" + std::to_string(numOfTickets) + ".json";
-    std::cout << p2 << std::endl;
-    std::ofstream of(p2);
-    of << tickets;
-
     // std::cout << "saled = " << saled << std::endl;
+    return saled;
 }
 
 
 
 // Classes
-// STOLOTO_4_20
-
 Sportloto_4_20::Sportloto_4_20()
 {
+    wins = 0;
     char lotoName[] = "4_20";
     srand(time(0));
     std::ifstream fd("conf/tickets.json");
@@ -162,7 +164,11 @@ Sportloto_4_20::Sportloto_4_20()
     superPrize = ticket[lotoName]["superPrize"].get<int>();
     prizeVector = ticket[lotoName]["prize"].get<std::vector<float>>();
 }
-void Sportloto_4_20::genTicket(const int id, nlohmann::json & ticket)
+std::string Sportloto_4_20::getName() const
+{
+    return std::string("4_20");
+}
+bool Sportloto_4_20::genTicket(const int id, nlohmann::json & ticket)const
 {   
     ticket = {};
     ticket["id"] = id;
@@ -186,6 +192,7 @@ void Sportloto_4_20::genTicket(const int id, nlohmann::json & ticket)
         ticket["sale"] = true;
         ticket["numbers"] = vec;
     }
+    return ticket["sale"];
 }
 std::pair<int,int> Sportloto_4_20::calcWin(const std::vector<std::vector<int>> & ticketVec,const std::vector<std::vector<int>> & winVec)
 {
@@ -212,27 +219,27 @@ bool Sportloto_4_20::addWining(json& ticket, const std::vector<std::vector<int>>
             {
                 // ticket["winning"] = round(prizeVector[0] * 100) / 100;
                 ticket["winning"] = 1;
-                numericalPrizeVector[1] += cost;
+                numericalPrizeVector[1] += 1;
             }
             else if (winCount.first == 3 || winCount.second == 3)
             {
                 ticket["winning"] = 2;
-                numericalPrizeVector[2] += cost;
+                numericalPrizeVector[2] += 1;
             }
             else if (winCount.first == 2 || winCount.second == 2)
             {
                 ticket["winning"] = 3;
-                numericalPrizeVector[3] += cost;
+                numericalPrizeVector[3] += 1;
             }
             else if (winCount.first == 1 || winCount.second == 1)
             {
                 ticket["winning"] = 4;
-                numericalPrizeVector[4] += cost;
+                numericalPrizeVector[4] += 1;
             }
             else if (winCount.first == 0 || winCount.second == 0)
             {
                 ticket["winning"] = 5;
-                numericalPrizeVector[5] += cost;
+                numericalPrizeVector[5] += 1;
             }
         }
         else if (winCount.first == 3 || winCount.second == 3)
@@ -240,22 +247,22 @@ bool Sportloto_4_20::addWining(json& ticket, const std::vector<std::vector<int>>
             if (winCount.first == 3 && winCount.second == 3)
             {
                 ticket["winning"] = 6;
-                numericalPrizeVector[6] += cost;
+                numericalPrizeVector[6] += 1;
             }
             else if (winCount.first == 2 || winCount.second == 2)
             {
                 ticket["winning"] = 7;
-                numericalPrizeVector[7] += cost;
+                numericalPrizeVector[7] += 1;
             }
             else if (winCount.first == 1 || winCount.second == 1)
             {
                 ticket["winning"] = 8;
-                numericalPrizeVector[8] += cost;
+                numericalPrizeVector[8] += 1;
             }
             else if (winCount.first == 0 || winCount.second == 0)
             {
                 ticket["winning"] = 9;
-                numericalPrizeVector[9] += cost;
+                numericalPrizeVector[9] += 1;
             }
         }
         else if (winCount.first == 2 || winCount.second == 2)
@@ -263,17 +270,17 @@ bool Sportloto_4_20::addWining(json& ticket, const std::vector<std::vector<int>>
             if (winCount.first == 2 && winCount.second == 2)
             {
                 ticket["winning"] = 10;
-                numericalPrizeVector[10] += cost;
+                numericalPrizeVector[10] += 1;
             }
             else if (winCount.first == 1 || winCount.second == 1)
             {
                 ticket["winning"] = 11;
-                numericalPrizeVector[11] += cost;
+                numericalPrizeVector[11] += 1;
             }
             else if (winCount.first == 0 || winCount.second == 0)
             {
                 ticket["winning"] = 12;
-                numericalPrizeVector[12] += cost;
+                numericalPrizeVector[12] += 1;
             }
         }
         else
@@ -284,15 +291,31 @@ bool Sportloto_4_20::addWining(json& ticket, const std::vector<std::vector<int>>
 
     return false;
 }
-// // void Sportloto_4_20::recalcWin(json& ticket){}
-// void Sportloto_4_20::recalcVec()
-// {
-//     for (int i = 0; i < 12; i++)
-//     {
-//         numericalPrizeVector[i] *= prizeVector 
-//     }
-// }
+void Sportloto_4_20::recalckPrizeVec(const u64& WinBank)
+{
+    for (int i = 0; i < 12; i++)
+    {
+        numericalPrizeVector[i] = WinBank * prizeVector[i] / numericalPrizeVector[i];
+    }
+}
+bool Sportloto_4_20::recalckWin(json& ticket)
+{
+    ticket["wining"] = numericalPrizeVector[ticket["wining"].get<int>()];
+    wins += ticket["wining"].get<int>();
+}
+std::vector<std::vector<int>> Sportloto_4_20::genWinVec()
+{
+    std::vector<std::vector<int>> vec;
+    vec.push_back(std::vector<int>());
+    vec.push_back(std::vector<int>());
 
+    for (int i = 0; i < 4; i++)
+    {
+        generateNum(20, vec[0]);
+        generateNum(20, vec[1]);
+    }
+    return vec;
+}
 
 Sportloto_5_36::Sportloto_5_36()
 {
@@ -307,11 +330,16 @@ Sportloto_5_36::Sportloto_5_36()
     json ticket = {};
     fd >> ticket;
 
+    wins = 0;
     cost = ticket[lotoName]["cost"].get<int>();
     superPrize = ticket[lotoName]["superPrize"].get<int>();
     prizeVector = ticket[lotoName]["prize"].get<std::vector<int>>();
 }
-void Sportloto_5_36::genTicket(const int id, nlohmann::json & ticket)
+std::string Sportloto_5_36::getName()const
+{
+    return std::string("5_36");
+}
+bool Sportloto_5_36::genTicket(const int id, nlohmann::json & ticket)const
 {
     ticket = {};
     ticket["id"] = id;
@@ -335,8 +363,9 @@ void Sportloto_5_36::genTicket(const int id, nlohmann::json & ticket)
         ticket["sale"] = true;
         ticket["numbers"] = vec;
     }
+    return ticket["sale"];
 }
-int Sportloto_5_36::calcWin(const std::vector<std::vector<int>> & ticketVec,const std::vector<std::vector<int>> & winVec)
+int Sportloto_5_36::calcWin(const std::vector<std::vector<int>> & ticketVec,const std::vector<std::vector<int>> & winVec)const
 {
     int winCount = 0;
     for (int i = 0; i < 5; i++)
@@ -350,13 +379,16 @@ int Sportloto_5_36::calcWin(const std::vector<std::vector<int>> & ticketVec,cons
 
     return winCount;
 }
-bool Sportloto_5_36::addWinning(json& ticket, const std::vector<std::vector<int>> & winVec)
+bool Sportloto_5_36::addWining(json& ticket, const std::vector<std::vector<int>> & winVec)
 {
     if (ticket["saled"])
     {
         int winCount = calcWin(ticket["numbers"].get<std::vector<std::vector<int>>>(), winVec);
         if (winCount <= 5)
+        {
             ticket["winning"] = prizeVector[winCount];
+            wins += prizeVector[winCount];
+        }
         else if (winCount == 6)
         {
             ticket["winning"] = superPrize;
@@ -368,8 +400,19 @@ bool Sportloto_5_36::addWinning(json& ticket, const std::vector<std::vector<int>
 
     return false;
 }
+std::vector<std::vector<int>> Sportloto_5_36::genWinVec()
+{
+        std::vector<std::vector<int>> vec;
+        vec.push_back(std::vector<int>());
+        vec.push_back(std::vector<int>());
 
-
+        for (int i = 0; i < 5; i++)
+        {
+            generateNum(36, vec[0]);
+        }
+        generateNum(4, vec[1]);
+        return vec;
+}
 
 Sportloto_6_45::Sportloto_6_45()
 {
@@ -384,11 +427,16 @@ Sportloto_6_45::Sportloto_6_45()
     json ticket = {};
     fd >> ticket;
 
+    wins = 0;
     cost = ticket[lotoName]["cost"].get<int>();
     superPrize = ticket[lotoName]["superPrize"].get<int>();
     prizeVector = ticket[lotoName]["prize"].get<std::vector<int>>();
 }
-void Sportloto_6_45::genTicket(const int id, nlohmann::json & ticket)
+std::string Sportloto_6_45::getName() const
+{
+    return std::string("6_45");
+}
+bool Sportloto_6_45::genTicket(const int id, nlohmann::json & ticket)const
 {
     ticket = {};
     ticket["id"] = id;
@@ -409,8 +457,9 @@ void Sportloto_6_45::genTicket(const int id, nlohmann::json & ticket)
         ticket["sale"] = true;
         ticket["numbers"] = vec;
     }
+    return ticket["sale"];
 }
-int Sportloto_6_45::calcWin(const std::vector<int> & ticketVec,const std::vector<int> & winVec)
+int Sportloto_6_45::calcWin(const std::vector<int> & ticketVec,const std::vector<int> & winVec)const
 {
     int winCount = 0;
     for (int i = 0; i < 6; i++)
@@ -421,13 +470,16 @@ int Sportloto_6_45::calcWin(const std::vector<int> & ticketVec,const std::vector
     // std::cout << winCount << std::endl;
     return winCount;
 }
-bool Sportloto_6_45::addWinning(json& ticket,const std::vector<int> & winVec)
+bool Sportloto_6_45::addWining(json& ticket,const std::vector<int> & winVec)
 {
     if (ticket["saled"])
     {
         int winCount = calcWin(ticket["numbers"].get<std::vector<int>>(), winVec);
         if (winCount <= 5)
+        {
             ticket["winning"] = prizeVector[winCount];
+            wins += prizeVector[winCount];
+        }
         else if (winCount == 6)
         {
             ticket["winning"] = superPrize;
@@ -439,7 +491,16 @@ bool Sportloto_6_45::addWinning(json& ticket,const std::vector<int> & winVec)
 
     return false;
 }
+std::vector<int> Sportloto_6_45::genWinVec()
+{
+    std::vector<int> vec;
 
+    for (int i = 0; i < 6; i++)
+    {
+        generateNum(45, vec);
+    }
+    return vec;
+}
 
 Sportloto_7_49::Sportloto_7_49()
 {
@@ -454,11 +515,16 @@ Sportloto_7_49::Sportloto_7_49()
     json ticket = {};
     fd >> ticket;
 
+    wins = 0;
     cost = ticket[lotoName]["cost"].get<int>();
     superPrize = ticket[lotoName]["superPrize"].get<int>();
     prizeVector = ticket[lotoName]["prize"].get<std::vector<int>>();
 }
-void Sportloto_7_49::genTicket(const int id, nlohmann::json & ticket)
+std::string Sportloto_7_49::getName()const
+{
+    return std::string("7_49");
+}
+bool Sportloto_7_49::genTicket(const int id, nlohmann::json & ticket)const
 {
     ticket = {};
     ticket["id"] = id;
@@ -479,8 +545,9 @@ void Sportloto_7_49::genTicket(const int id, nlohmann::json & ticket)
         ticket["sale"] = true;
         ticket["numbers"] = vec;
     }
+    return ticket["sale"];
 }
-int Sportloto_7_49::calcWin(const std::vector<int> & ticketVec,const std::vector<int> & winVec)
+int Sportloto_7_49::calcWin(const std::vector<int> & ticketVec,const std::vector<int> & winVec)const
 {
     int winCount = 0;
     for (int i = 0; i < 7; i++)
@@ -491,13 +558,16 @@ int Sportloto_7_49::calcWin(const std::vector<int> & ticketVec,const std::vector
     // std::cout << winCount << std::endl;
     return winCount;
 }
-bool Sportloto_7_49::addWinning(json& ticket,const std::vector<int> & winVec)
+bool Sportloto_7_49::addWining(json& ticket,const std::vector<int> & winVec)
 {
     if (ticket["saled"])
     {
         int winCount = calcWin(ticket["numbers"].get<std::vector<int>>(), winVec);
         if (winCount <= 6)
+        {
             ticket["winning"] = prizeVector[winCount];
+            wins += prizeVector[winCount];
+        }
         else if (winCount == 7)
         {
             ticket["winning"] = superPrize;
@@ -508,4 +578,14 @@ bool Sportloto_7_49::addWinning(json& ticket,const std::vector<int> & winVec)
     }
 
     return false;
+}
+std::vector<int> Sportloto_7_49::genWinVec()
+{
+    std::vector<int> vec;
+
+    for (int i = 0; i < 7; i++)
+    {
+        generateNum(49, vec);
+    }
+    return vec;
 }
