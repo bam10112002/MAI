@@ -28,32 +28,15 @@ void FinishLotterey::finish_7_49(Sportloto *lot, const u32 numOfTickets, const u
 
     int draw = status[lot->getName().c_str()]["draw"].get<int>();
     basePath = getDatasetPath() + lot->getName() + "/" + std::to_string(draw);
-    // std::vector<std::thread*> thVec;
     std::thread* thVec[numOfTickets / fileSize];
 
-    for (u32 i = 0; i <= numOfTickets / fileSize; i++)
+    for (u32 i = 0; i < numOfTickets / fileSize; i++)
     {
         u32 endInd = std::min(static_cast<u32>((i+1) * fileSize), numOfTickets);
         std::string path = basePath + "/" +   std::to_string(i * fileSize) + "-" + std::to_string(endInd) + ".json";
         std::ifstream inFile(path);
 
         thVec[i] = new std::thread(FinishLotterey::Thfinish_7_49, path, static_cast<Sportloto_7_49*>(lot), std::ref(winV));
-      
-        // if (!inFile.is_open())
-        // {
-        //     // TODO: ERROR
-        // }
-        // inFile >> tickets;
-        // for (auto & ticket : tickets["mainVector"])
-        // {
-        //     static_cast<Sportloto_7_49*>(lot)->addWining(ticket, winV);
-        // }
-        // std::ofstream ofFile(path);
-        // if (!ofFile.is_open())
-        // {
-        //     // TODO: ERROR
-        // }
-        // ofFile << tickets;
     }
 
     for (auto obj : thVec)

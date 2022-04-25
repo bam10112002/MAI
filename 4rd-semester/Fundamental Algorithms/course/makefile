@@ -24,3 +24,11 @@ clear:
 check:
 	@cppcheck -j4 --enable=performance,portability,warning,style npp.6.5.3. src/
 	@cppcheck -j4 --enable=performance,portability,warning,style npp.6.5.3. main.cpp
+
+debug: bin/simulateSale.o bin/genDraw.o bin/finishLottery.o 
+	@g++ -g main.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o -o bin/main -pthread
+remove_db:
+	rm -rf datasets/7_49/*
+	rm -rf datasets/6_45/*
+	rm -rf datasets/5_36/*
+	rm -rf datasets/4_20/*

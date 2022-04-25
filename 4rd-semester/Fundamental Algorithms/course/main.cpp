@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
     Sportloto* lot = new Sportloto_7_49; 
-    Lottery lottery(lot, 1000000);
+    Lottery lottery(lot, 2000000);
 
     uint64_t time2;
     auto start = std::chrono::high_resolution_clock::now();

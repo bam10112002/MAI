@@ -1,5 +1,11 @@
 #include "../include/Stoloto.h"
 
+int intRand(const int & min, const int & max) {
+    static thread_local std::mt19937 generator;
+    std::uniform_int_distribution<int> distribution(min,max);
+    return distribution(generator);
+}
+
 void generateNum(const int border, std::vector<int> & vec)
 {
     bool flag = true;
@@ -64,82 +70,53 @@ void Lottery::FinishLottery()
     finish(lot, drawSize, fileSize);
 }
 
-void SimulateSale::genPackTicketsTh(Sportloto & lot, std::list<nlohmann::json> & l, u32 & currid,
-std::mutex & mtx, const u64 numOfTickets, u32 & saled)
+void saleFile(Sportloto* lot, u32& saled, std::mutex & mtx, std::string basePath, u32 startInd, u32 endInd)
 {
-    nlohmann::json ticket = {};
-    u32 id;
-    for (u32 i = 0; i < numOfTickets; i++)
+    u32 thSaled = 0;
+    nlohmann::json tickets = {};
+    std::vector<nlohmann::json> vec;
+
+    for (u32 i = startInd; i <= endInd; ++i)
     {
-        mtx.lock();
-        id = ++currid;
-        mtx.unlock();
-
-        saled += lot.genTicket(id, ticket);
-        l.push_back(ticket);
+        nlohmann::json ticket = {};
+        thSaled += lot->genTicket(i, ticket);
+        vec.push_back(ticket);
     }
-}
 
-u32 SimulateSale::genPackTickets(Sportloto* lot, std::list<nlohmann::json> & l, u32 & currid, const u32 numOfTickets)
-{
-    std::mutex mtx;
-    std::list<nlohmann::json> l1, l2, l3, l4, l5;
-    u32 saled1 = 0, saled2 = 0, saled3 = 0, saled4 = 0, saled5 = 0; 
+    tickets["mainVector"] = vec;
+    std::string path = basePath + "/" +   std::to_string(startInd) + "-" + std::to_string(endInd) + ".json";
+    std::ofstream of(path);
+    of << tickets;
 
-    std::thread th1(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l1),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled1));
-    std::thread th2(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l2),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled2));
-    std::thread th3(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l3),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled3));
-    std::thread th4(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l4),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled4));
-    std::thread th5(SimulateSale::genPackTicketsTh, std::ref(*lot), std::ref(l5),
-                    std::ref(currid), std::ref(mtx), numOfTickets/5, std::ref(saled5));
-    th1.join();
-    th2.join();
-    th3.join();
-    th4.join();
-    th5.join();
+    mtx.lock();
+    saled += thSaled;
+    mtx.unlock();
 
-    l1.merge(l2);
-    l1.merge(l3);
-    l1.merge(l4);
-    l1.merge(l5);
-    l.merge(l1);
-
-    return (saled1 + saled2 + saled3 + saled4 + saled5);
+    std::cout <<"create: " << path << std::endl; //TODO: дебагерская тема в проде стоит убрать
 }
 
 u32 SimulateSale::operator()(Sportloto* lot, const u64 drawSize, const u64 Fsize)
 {
     std::string basePath;
     json status = getStatusJson();
-    u32 currid = 0;
     u32 saled = 0;
+    std::vector<std::thread*> thVec;
+    std::mutex mtx;
 
     int draw = status[lot->getName().c_str()]["draw"].get<int>();
     basePath = getDatasetPath() + lot->getName() + "/" + std::to_string(draw);
 
-
-    std::list<nlohmann::json> list;
-    nlohmann::json tickets = {};
-
-    for(u32 i = 0; i <= drawSize / Fsize; i++)
+    for(u32 i = 0; i < drawSize / Fsize; i++)
     {
         u32 endInd = std::min((i+1) * Fsize, drawSize);
-        saled += genPackTickets(lot, list, currid, endInd - currid);
-        tickets["mainVector"] = list;
+        u32 startInd = i*Fsize;
+        thVec.push_back(new std::thread(saleFile, lot, std::ref(saled), std::ref(mtx), basePath, startInd, endInd));
+    }
 
-        // Запись проданных билетов в файл
-        std::string path = basePath + "/" +   std::to_string(i * Fsize) + "-" + std::to_string(endInd) + ".json";
-        std::ofstream of(path);
-        of << tickets;
-        std::cout <<"create: " << path << std::endl; //TODO: дебагерская тема в проде стоит убрать
-
-        // Очистка данных 
-        list.clear();
-        tickets.clear();
+    for (auto obj : thVec)
+    {
+        obj->join();
+        delete obj;
     }
 
     std::cout << "Saled = " << saled << std::endl;  //TODO: дебагерская тема в проде стоит убрать

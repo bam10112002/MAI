@@ -23,8 +23,8 @@ class SimulateSale
 private:
     std::string getDatasetPath();
     json getStatusJson();
-    static void genPackTicketsTh(Sportloto& , std::list<nlohmann::json>&, u32&, std::mutex&, const u64, u32&);
-    static u32 genPackTickets(Sportloto *lot, std::list<nlohmann::json> &l, u32 &currid, const u32 numOfTickets);
+    // static void genPackTicketsTh(Sportloto& , std::list<nlohmann::json>&, u32&, std::mutex&, const u64, u32&);
+    // static u32 genPackTickets(Sportloto *lot, std::list<nlohmann::json> &l, u32 &currid, const u32 numOfTickets);
 
 public:
     u32 operator()(Sportloto*, const u64, const u64);
