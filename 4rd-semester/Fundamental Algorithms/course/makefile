@@ -19,7 +19,7 @@ test: bin/simulateSale.o bin/genDraw.o
 	@./test1
 	@rm test1
 
-clean: 
+clear: 
 	rm bin/*.o
 check:
 	@cppcheck -j4 --enable=performance,portability,warning,style npp.6.5.3. src/

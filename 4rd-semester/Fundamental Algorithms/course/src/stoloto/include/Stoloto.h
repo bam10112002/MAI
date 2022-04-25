@@ -3,6 +3,12 @@
 #include "../src/Sourse.h"
 
 class Sportloto;
+class Sportloto_4_20;
+class Sportloto_5_36;
+class Sportloto_6_45;
+class Sportloto_7_49;
+
+
 
 class GenerateDraw
 {
@@ -29,8 +35,12 @@ private:
     std::string getDatasetPath();
     json getStatusJson();
 
+    void finish_7_49(Sportloto *lot, const u32 numOfTickets, const u64& fileSize);
+    static void Thfinish_7_49(std::string path, Sportloto_7_49* lot, const std::vector<int>& winV);
+
 public:
-    void operator()(Sportloto *lot, const u32 numOfTickets);
+    void operator()(Sportloto *lot, const u32 numOfTickets, const u64& fileSize);
+
 };
 
 class Lottery
@@ -47,7 +57,7 @@ private:
     FinishLotterey finish;
 
 public:
-    Lottery(Sportloto *, u64);
+    Lottery(Sportloto*, u64);
     void GenDraw();
     void SimSale();
     void FinishLottery();
@@ -120,7 +130,7 @@ public:
     std::string getName() const override;
     bool genTicket(const int id, nlohmann::json &ticket) const override;
     bool addWining(json &ticket, const std::vector<int> &winVec);
-    virtual std::vector<int> genWinVec();
+    std::vector<int> genWinVec();
 };
 
 #endif

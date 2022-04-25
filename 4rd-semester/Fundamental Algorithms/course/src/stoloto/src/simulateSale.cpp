@@ -48,7 +48,7 @@ Lottery::Lottery(Sportloto* _lot, u64 _drawSize)
     lot = _lot;
     drawSize = _drawSize;
     saled = 0;
-    fileSize = static_cast<u16>(500000);
+    fileSize = static_cast<u64>(250000);
 }
 
 void Lottery::GenDraw()
@@ -59,7 +59,10 @@ void Lottery::SimSale()
 {
     saled = sale(lot, drawSize, fileSize);
 }
-void Lottery::FinishLottery(){}
+void Lottery::FinishLottery()
+{
+    finish(lot, drawSize, fileSize);
+}
 
 void SimulateSale::genPackTicketsTh(Sportloto & lot, std::list<nlohmann::json> & l, u32 & currid,
 std::mutex & mtx, const u64 numOfTickets, u32 & saled)
@@ -139,7 +142,7 @@ u32 SimulateSale::operator()(Sportloto* lot, const u64 drawSize, const u64 Fsize
         tickets.clear();
     }
 
-    // std::cout << "saled = " << saled << std::endl;
+    std::cout << "Saled = " << saled << std::endl;  //TODO: дебагерская тема в проде стоит убрать
     return saled;
 }
 
@@ -174,7 +177,7 @@ bool Sportloto_4_20::genTicket(const int id, nlohmann::json & ticket)const
     ticket["id"] = id;
     if ((rand() % 20) == 1)
     {
-        ticket["sale"] = false;
+        ticket["saled"] = false;
     }
     else
     {
@@ -345,7 +348,7 @@ bool Sportloto_5_36::genTicket(const int id, nlohmann::json & ticket)const
     ticket["id"] = id;
     if ((rand() % 20) == 1)
     {
-        ticket["sale"] = false;
+        ticket["saled"] = false;
     }
     else
     {
@@ -442,7 +445,7 @@ bool Sportloto_6_45::genTicket(const int id, nlohmann::json & ticket)const
     ticket["id"] = id;
     if ((rand() % 20) == 1)
     {
-        ticket["sale"] = false;
+        ticket["saled"] = false;
     }
     else
     {
@@ -530,7 +533,7 @@ bool Sportloto_7_49::genTicket(const int id, nlohmann::json & ticket)const
     ticket["id"] = id;
     if ((rand() % 20) == 1)
     {
-        ticket["sale"] = false;
+        ticket["saled"] = false;
     }
     else
     {
@@ -542,10 +545,10 @@ bool Sportloto_7_49::genTicket(const int id, nlohmann::json & ticket)const
             generateNum(49, vec);
         }
 
-        ticket["sale"] = true;
+        ticket["saled"] = true;
         ticket["numbers"] = vec;
     }
-    return ticket["sale"];
+    return ticket["saled"];
 }
 int Sportloto_7_49::calcWin(const std::vector<int> & ticketVec,const std::vector<int> & winVec)const
 {
