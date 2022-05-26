@@ -1,13 +1,19 @@
 FLAG = -O2 -Wall -Wextra -std=c++17
 
-all: bin/simulateSale.o bin/genDraw.o bin/finishLottery.o 
-	@g++ $(FLAG) -Werror main.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o -o bin/main -pthread
+all: bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/sportlotoClasses.o bin/lotery.o 
+	@g++ $(FLAG) -Werror main.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/lotery.o bin/sportlotoClasses.o -o bin/main -pthread
 
 bin/simulateSale.o : src/stoloto/src/simulateSale.cpp
 	@g++ -c $(FLAG) src/stoloto/src/simulateSale.cpp -o bin/simulateSale.o -pthread
 
 bin/genDraw.o : src/stoloto/src/genDraw.cpp
 	@g++ -c $(FLAG) src/stoloto/src/genDraw.cpp -o bin/genDraw.o
+
+bin/lotery.o : src/stoloto/src/lotery.cpp
+	@g++ -c $(FLAG) src/stoloto/src/lotery.cpp -o bin/lotery.o
+
+bin/sportlotoClasses.o : src/stoloto/src/sportlotoClasses.cpp
+	@g++ -c $(FLAG) src/stoloto/src/sportlotoClasses.cpp -o bin/sportlotoClasses.o
 
 bin/finishLottery.o : src/stoloto/src/finishLottery.cpp
 	@g++ -c $(FLAG) src/stoloto/src/finishLottery.cpp -o bin/finishLottery.o
@@ -27,8 +33,9 @@ check:
 
 debug: bin/simulateSale.o bin/genDraw.o bin/finishLottery.o 
 	@g++ -g main.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o -o bin/main -pthread
-remove_db:
-	rm -rf datasets/7_49/*
-	rm -rf datasets/6_45/*
-	rm -rf datasets/5_36/*
-	rm -rf datasets/4_20/*
+rmDb:
+	@rm -rf datasets/7_49/*
+	@rm -rf datasets/6_45/*
+	@rm -rf datasets/5_36/*
+	@rm -rf datasets/4_20/*
+	@echo Database is cleaned

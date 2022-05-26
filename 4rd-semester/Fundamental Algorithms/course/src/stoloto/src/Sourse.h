@@ -29,6 +29,6 @@ using json = nlohmann::json;
 // std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
 
-void generateNum(const int border, std::vector<int> & vec);
+void generateNumbersVec(const int border, std::vector<int> & vec);
 
 #endif

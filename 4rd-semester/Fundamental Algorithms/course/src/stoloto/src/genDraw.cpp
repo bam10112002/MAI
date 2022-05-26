@@ -1,15 +1,15 @@
 // #include "genDraw.h"
 #include "../include/Stoloto.h"
 
-void GenerateDraw::operator()(const std::string & sportloto)
+void GenerateDraw::operator()(const std::string & loteryName)
 {
-    std::string path = "";
+    std::string path = ""; 
     json status = getStatusJson();
 
-    if (status[sportloto.c_str()]["status"].get<std::string>() == std::string("ended"))
+    if (status[loteryName.c_str()]["status"].get<std::string>() == std::string("ended"))
     {
-        int draw = status[sportloto.c_str()]["draw"].get<int>() + 1;
-        path = getDatasetPath() + sportloto + "/" + std::to_string(draw);
+        int draw = status[loteryName.c_str()]["draw"].get<int>() + 1;
+        path = getDatasetPath() + loteryName + "/" + std::to_string(draw);
         int dir = mkdir(path.c_str(), 0777);
         if (dir != 0)
         {
@@ -18,14 +18,15 @@ void GenerateDraw::operator()(const std::string & sportloto)
             exit(-1);
         }
 
-        status[sportloto.c_str()]["draw"] = draw;
+        status[loteryName.c_str()]["draw"] = draw;
+        // status[loteryName.c_str()]["status"] = "started"; //TODO: вернуть
         std::ofstream of("conf/status.json");
         of << status;
     }
     else    
     {
-        //TODO: trow LotteryError;  
-        std::cout << "error draw sale is not ended please wait" << std::endl;
+        //TODO: throw LotteryError;  
+        std::cout << "\n\033[31mERROR: draw sale is not ended please wait\033[0m\n" << std::endl;
         exit(-1);
     }
 }

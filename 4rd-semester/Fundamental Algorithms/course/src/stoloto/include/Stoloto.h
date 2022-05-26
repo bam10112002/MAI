@@ -23,8 +23,6 @@ class SimulateSale
 private:
     std::string getDatasetPath();
     json getStatusJson();
-    // static void genPackTicketsTh(Sportloto& , std::list<nlohmann::json>&, u32&, std::mutex&, const u64, u32&);
-    // static u32 genPackTickets(Sportloto *lot, std::list<nlohmann::json> &l, u32 &currid, const u32 numOfTickets);
 
 public:
     u32 operator()(Sportloto*, const u64, const u64);
@@ -32,14 +30,14 @@ public:
 class FinishLotterey
 {
 private:
-    std::string getDatasetPath();
-    json getStatusJson();
+    // std::string getDatasetPath();
+    // json getStatusJson();
 
-    void finish_7_49(Sportloto *lot, const u32 numOfTickets, const u64& fileSize);
-    static void Thfinish_7_49(std::string path, Sportloto_7_49* lot, const std::vector<int>& winV);
+    // void finish_7_49(Sportloto *lot, const u32 numOfTickets, const u64& fileSize);
+    // static void Thfinish_7_49(std::string path, Sportloto_7_49* lot, const std::vector<int>& winV);
 
 public:
-    void operator()(Sportloto *lot, const u32 numOfTickets, const u64& fileSize);
+    // void operator()(Sportloto *lot, const u32 numOfTickets, const u64& fileSize);
 
 };
 
