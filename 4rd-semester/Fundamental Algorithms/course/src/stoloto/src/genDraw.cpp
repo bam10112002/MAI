@@ -22,11 +22,13 @@ void GenerateDraw::operator()(const std::string & loteryName)
         // status[loteryName.c_str()]["status"] = "started"; //TODO: вернуть
         std::ofstream of("conf/status.json");
         of << status;
+        createLog(path + "/log.json");
     }
     else    
     {
         //TODO: throw LotteryError;  
-        std::cout << "\n\033[31mERROR: draw sale is not ended please wait\033[0m\n" << std::endl;
+        std::cout << "\n\033[31mERROR: draw sale is not ended please wait\033[0m\n"
+                  << std::endl;
         exit(-1);
     }
 }
@@ -55,4 +57,11 @@ json GenerateDraw::getStatusJson()
     json status = {};
     fd >> status;
     return status;
+}
+void GenerateDraw::createLog(const std::string& path)
+{
+    json log = {};
+    log["fileSize"] = FS;
+    std::ofstream of(path);
+    of << log;
 }

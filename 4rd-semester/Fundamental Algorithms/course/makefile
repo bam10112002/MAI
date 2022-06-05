@@ -1,7 +1,7 @@
-FLAG = -O2 -Wall -Wextra -std=c++17
+FLAG = -Wall -Wextra -std=c++17
 
-all: bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/sportlotoClasses.o bin/lotery.o 
-	@g++ $(FLAG) -Werror main.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/lotery.o bin/sportlotoClasses.o -o bin/main -pthread
+all: bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/sportlotoClasses.o bin/lotery.o bin/log.o bin/find.o 
+	@g++ $(FLAG) main.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/lotery.o bin/sportlotoClasses.o bin/log.o bin/find.o  -o bin/main -pthread
 
 bin/simulateSale.o : src/stoloto/src/simulateSale.cpp
 	@g++ -c $(FLAG) src/stoloto/src/simulateSale.cpp -o bin/simulateSale.o -pthread
@@ -18,7 +18,17 @@ bin/sportlotoClasses.o : src/stoloto/src/sportlotoClasses.cpp
 bin/finishLottery.o : src/stoloto/src/finishLottery.cpp
 	@g++ -c $(FLAG) src/stoloto/src/finishLottery.cpp -o bin/finishLottery.o
 
+bin/log.o : src/stoloto/src/log.cpp src/stoloto/src/log.h
+	@g++ -c $(FLAG) src/stoloto/src/log.cpp -o bin/log.o
+
+bin/find.o : src/stoloto/src/find.cpp src/stoloto/src/find.h
+	@g++ -c $(FLAG) src/stoloto/src/find.cpp -o bin/find.o
+
 #==============================<<<<<<<<<>>>>>>>>>>=================================================
+
+start: bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/sportlotoClasses.o bin/lotery.o 
+	@g++ $(FLAG) main.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o bin/lotery.o bin/sportlotoClasses.o -o bin/main -pthread
+	./bin/main
 
 test: bin/simulateSale.o bin/genDraw.o
 	@g++ $(FLAG) tests/test1.cpp bin/simulateSale.o bin/genDraw.o bin/finishLottery.o -o test1 -pthread

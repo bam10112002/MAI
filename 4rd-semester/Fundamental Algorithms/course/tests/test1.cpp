@@ -36,7 +36,7 @@ int main()
 bool addWining_7_49_ItemTest(int ind, json & ticket, const std::vector<int> & winVector, int prize)
 {
     Sportloto_7_49 lot;
-    lot.addWinning(ticket, winVector);
+    lot.addWining(ticket, winVector);
 
     std::cout << "Test " << ind <<" : " << std::setw(13) << ticket["winning"] << " " << std::setw(13) << prize << "\t";
 
@@ -96,7 +96,7 @@ int addWining_7_49_Test()
 bool addWining_6_45_ItemTest(int ind, json & ticket, const std::vector<int> & winVector, int prize)
 {
     Sportloto_6_45 lot;
-    lot.addWinning(ticket, winVector);
+    lot.addWining(ticket, winVector);
 
     std::cout << "Test " << ind <<" : " << std::setw(13) << ticket["winning"] << " " << std::setw(13) << prize << "\t";
 
@@ -154,7 +154,7 @@ int addWining_6_45_Test()
 bool addWining_5_36_ItemTest(int ind, json & ticket, const std::vector<std::vector<int>> & winVector, int prize)
 {
     Sportloto_5_36 lot;
-    lot.addWinning(ticket, winVector);
+    lot.addWining(ticket, winVector);
 
     std::cout << "Test " << ind <<" : " << std::setw(13) << ticket["winning"] << " " << std::setw(13) << prize << "\t";
 

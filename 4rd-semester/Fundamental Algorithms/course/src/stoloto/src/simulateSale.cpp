@@ -43,9 +43,23 @@ json SimulateSale::getStatusJson()
     fd >> status;
     return status;
 }
+void SimulateSale::writeLog(const u32& saled, const u32& drawSize, 
+                            const std::string& path) const
+{
+    json log;
+    std::ifstream ifs(path);
+    ifs >> log;
+
+    log["saled"] = saled;
+    log["drawSize"] = drawSize;
+
+    std::ofstream of(path);
+    of << log;
+}
 
 // Sale
-void saleFile(Sportloto* lot, u32& saled, std::mutex & mtx, std::string basePath, u32 startInd, u32 endInd)
+void saleFile(Sportloto* lot, u32& saled, std::mutex & mtx,
+             std::string basePath, u32 startInd, u32 endInd)
 {
     u32 thSaled = 0;
     nlohmann::json tickets = {};
@@ -64,7 +78,8 @@ void saleFile(Sportloto* lot, u32& saled, std::mutex & mtx, std::string basePath
     }
     // tickets["mainVector"] = vec;
 
-    std::string path = basePath + "/" +   std::to_string(startInd) + "-" + std::to_string(endInd) + ".json";
+    std::string path = basePath + "/" +  std::to_string(startInd) +
+                         "-" + std::to_string(endInd) + ".json";
     std::ofstream of(path);
     of << tickets;
 
@@ -72,7 +87,8 @@ void saleFile(Sportloto* lot, u32& saled, std::mutex & mtx, std::string basePath
     saled += thSaled;
     mtx.unlock();
 
-    std::cout <<"create: " << path << std::endl; //TODO: дебагерская тема в проде стоит убрать
+    std::cout <<"create: " << path << std::endl;
+     //TODO: дебагерская тема в проде стоит убрать
 }
 
 u32 SimulateSale::operator()(Sportloto* lot, const u64 drawSize, const u64 Fsize)
@@ -90,7 +106,7 @@ u32 SimulateSale::operator()(Sportloto* lot, const u64 drawSize, const u64 Fsize
     for(u32 i = 0; i <= drawSize / Fsize; i++)
     {
         u32 startInd = i*Fsize;
-        u32 endInd = std::min((i+1) * Fsize, drawSize-1);
+        u32 endInd = std::min((i+1) * Fsize, drawSize)-1;
 
         if (thVec.size() >= 9)
         {
@@ -102,7 +118,8 @@ u32 SimulateSale::operator()(Sportloto* lot, const u64 drawSize, const u64 Fsize
             thVec.resize(0);
         }
         
-        thVec.push_back(new std::thread(saleFile, lot, std::ref(saled), std::ref(mtx), basePath, startInd, endInd));
+        thVec.push_back(new std::thread(saleFile, lot, std::ref(saled),
+                             std::ref(mtx), basePath, startInd, endInd));
     }
 
     for (auto obj : thVec)
@@ -110,7 +127,9 @@ u32 SimulateSale::operator()(Sportloto* lot, const u64 drawSize, const u64 Fsize
         obj->join();
         delete obj;
     }
+    writeLog(saled, drawSize, basePath + "/log.json");
+    std::cout << "Saled = " << saled << std::endl;
+      //TODO: дебагерская тема в проде стоит убрать
 
-    std::cout << "Saled = " << saled << std::endl;  //TODO: дебагерская тема в проде стоит убрать
     return saled;
 }
