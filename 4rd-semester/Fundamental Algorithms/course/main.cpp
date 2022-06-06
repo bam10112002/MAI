@@ -17,11 +17,11 @@ int main()
     uint64_t time2;
     auto start = std::chrono::high_resolution_clock::now();
 
-    // lottery.GenDraw();
-    // lottery.SimSale();
-    // lottery.FinishLottery();
-    FoundById(lot);
-    FoundByWinig(lot);
+    lottery.GenDraw();
+    lottery.SimSale();
+    lottery.FinishLottery();
+    // FoundById(lot);
+    // FoundByWinig(lot);
 
     time2 = std::chrono::duration_cast<std::chrono::milliseconds>
         (std::chrono::high_resolution_clock::now()-start).count();

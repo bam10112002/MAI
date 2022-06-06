@@ -4,28 +4,32 @@
 void FinishLotterey::operator()(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize, const u64& income)
 {
     u32 AmountOfWinings = 0;
-    // std::cout << "|| "<<income << std::endl;
     if (lot->getName() == std::string("7_49"))
     {
-        AmountOfWinings = finish_7_49(lot, quantityOfTickets, fileSize);
+        AmountOfWinings = finish_7_49(lot, quantityOfTickets, fileSize, fileMtx);
     }
     else if (lot->getName() == std::string("6_45"))
     {
-        AmountOfWinings = finish_6_45(lot, quantityOfTickets, fileSize);
+        AmountOfWinings = finish_6_45(lot, quantityOfTickets, fileSize, fileMtx);
     }
     else if (lot->getName() == std::string("5_36"))
     {
-        AmountOfWinings = finish_5_36(lot, quantityOfTickets, fileSize);
+        AmountOfWinings = finish_5_36(lot, quantityOfTickets, fileSize, fileMtx);
     }
-    else if (lot->getName() == std::string("4_20"))
-    {
-        AmountOfWinings = finish_4_20(lot, quantityOfTickets, fileSize);
-    }
+    // else if (lot->getName() == std::string("4_20"))
+    // {
+    //     AmountOfWinings = finish_4_20(lot, quantityOfTickets, fileSize);
+    // }
     else
-        std::cout << "lotery is not complited :(" <<std::endl;   
+        std::cout << "lotery is not complited :(" <<std::endl;
+
+    std::cout << "Income = "<<income << std::endl;
+    std::cout << "Amount Of Winings = "<< AmountOfWinings << std::endl;
+    // std::cout << "Test = " << this->GetSuperPrize(lot, fileMtx) << std::endl;
+    this->SetNewSuperPrize(lot, income - AmountOfWinings, fileMtx);
 }
 
-u32 FinishLotterey::finish_7_49(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize)
+u32 FinishLotterey::finish_7_49(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize, std::mutex& fileMtx)
 {
     std::string basePath = "";
     json status = getStatusJson();
@@ -83,7 +87,7 @@ u32 FinishLotterey::finish_7_49(Sportloto *lot, const u32 quantityOfTickets, con
         }
 
         thVec.push_back(new std::thread(FinishLotterey::Thfinish_7_49, path, static_cast<Sportloto_7_49*>(lot),
-         std::ref(winV), std::ref(mtx), std::ref(AmountOfWinings)));
+         std::ref(winV), std::ref(mtx), std::ref(AmountOfWinings), std::ref(fileMtx)));
     }
 
     for (auto obj : thVec)
@@ -102,7 +106,7 @@ u32 FinishLotterey::finish_7_49(Sportloto *lot, const u32 quantityOfTickets, con
     ifs.close(); 
     return AmountOfWinings;
 }
-void FinishLotterey::Thfinish_7_49(std::string path, Sportloto_7_49* lot, const std::vector<int>& winV, std::mutex & mtx, u32& AmWinings)
+void FinishLotterey::Thfinish_7_49(std::string path, Sportloto_7_49* lot, const std::vector<int>& winV, std::mutex & mtx, u32& AmWinings, std::mutex& fileMtx)
 {
     nlohmann::json tickets = {};
     std::ifstream inFile(path);
@@ -117,11 +121,16 @@ void FinishLotterey::Thfinish_7_49(std::string path, Sportloto_7_49* lot, const 
     u32 amountOfWinnings = 0;
     for (auto & ticket : tickets["mainVector"])
     {
-        lot->addWining(ticket, winV);
+        if (lot->addWining(ticket, winV))
+        {
+            ticket["winning"] = GetSuperPrize(lot, fileMtx);
+            std::cout << "The super prize was played!!! WHeeeeeeee)" << std::endl;
+            std::cout << "winner's id = " << ticket["id"] << std::endl;
+        }
         if (ticket["saled"])
             amountOfWinnings += ticket["winning"].get<int>();
     }
-    std::cout << "Amount Of Winnings = " << amountOfWinnings << std::endl;
+    // std::cout << "Amount Of Winnings = " << amountOfWinnings << std::endl;
     mtx.lock();
     AmWinings += amountOfWinnings;
     mtx.unlock();
@@ -138,7 +147,7 @@ void FinishLotterey::Thfinish_7_49(std::string path, Sportloto_7_49* lot, const 
     inFile.close();
 }
 
-u32 FinishLotterey::finish_6_45(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize)
+u32 FinishLotterey::finish_6_45(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize, std::mutex& fileMtx)
 {
     std::string basePath = "";
     json status = getStatusJson();
@@ -196,7 +205,7 @@ u32 FinishLotterey::finish_6_45(Sportloto *lot, const u32 quantityOfTickets, con
         }
 
         thVec.push_back(new std::thread(FinishLotterey::Thfinish_6_45, path, static_cast<Sportloto_6_45*>(lot),
-                        std::ref(winV), std::ref(mtx), std::ref(AmountOfWining)));
+                        std::ref(winV), std::ref(mtx), std::ref(AmountOfWining), std::ref(fileMtx)));
     }
 
     for (auto obj : thVec)
@@ -216,7 +225,7 @@ u32 FinishLotterey::finish_6_45(Sportloto *lot, const u32 quantityOfTickets, con
     ifs.close(); 
     return AmountOfWining;
 }
-void FinishLotterey::Thfinish_6_45(std::string path, Sportloto_6_45* lot, const std::vector<int>& winV, std::mutex & mtx, u32& AmWinings)
+void FinishLotterey::Thfinish_6_45(std::string path, Sportloto_6_45* lot, const std::vector<int>& winV, std::mutex & mtx, u32& AmWinings, std::mutex& fileMtx)
 {
     nlohmann::json tickets = {};
     std::ifstream inFile(path);
@@ -231,11 +240,16 @@ void FinishLotterey::Thfinish_6_45(std::string path, Sportloto_6_45* lot, const 
     u32 amountOfWinnings = 0;
     for (auto & ticket : tickets["mainVector"])
     {
-        lot->addWining(ticket, winV);
+        if (lot->addWining(ticket, winV))
+        {
+            ticket["winning"] = GetSuperPrize(lot, fileMtx);
+            std::cout << "The super prize was played!!! WHeeeeeeee)" << std::endl;
+            std::cout << "winner's id = " << ticket["id"] << std::endl;
+        }
         if (ticket["saled"])
             amountOfWinnings += ticket["winning"].get<int>();
     }
-    std::cout << "Amount Of Winnings = " << amountOfWinnings << std::endl;
+    // std::cout << "Amount Of Winnings = " << amountOfWinnings << std::endl;
     mtx.lock();
     AmWinings += amountOfWinnings;
     mtx.unlock();
@@ -253,7 +267,7 @@ void FinishLotterey::Thfinish_6_45(std::string path, Sportloto_6_45* lot, const 
 }
 
 
-u32 FinishLotterey::finish_5_36(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize)
+u32 FinishLotterey::finish_5_36(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize, std::mutex& fileMtx)
 {
     std::string basePath = "";
     json status = getStatusJson();
@@ -315,7 +329,7 @@ u32 FinishLotterey::finish_5_36(Sportloto *lot, const u32 quantityOfTickets, con
         }
 
         thVec.push_back(new std::thread(FinishLotterey::Thfinish_5_36, path, static_cast<Sportloto_5_36*>(lot), 
-                                        std::ref(winV), std::ref(mtx), std::ref(AmountOfWining)));
+                                        std::ref(winV), std::ref(mtx), std::ref(AmountOfWining), std::ref(fileMtx)));
     }
 
     for (auto obj : thVec)
@@ -336,7 +350,7 @@ u32 FinishLotterey::finish_5_36(Sportloto *lot, const u32 quantityOfTickets, con
     ifs.close(); 
     return AmountOfWining;
 }
-void FinishLotterey::Thfinish_5_36(std::string path, Sportloto_5_36* lot, const std::vector<std::vector<int>>& winV, std::mutex & mtx, u32& AmWinings)
+void FinishLotterey::Thfinish_5_36(std::string path, Sportloto_5_36* lot, const std::vector<std::vector<int>>& winV, std::mutex & mtx, u32& AmWinings, std::mutex& fileMtx)
 {
     nlohmann::json tickets = {};
     std::ifstream inFile(path);
@@ -351,7 +365,12 @@ void FinishLotterey::Thfinish_5_36(std::string path, Sportloto_5_36* lot, const 
     u32 amountOfWinnings = 0;
     for (auto & ticket : tickets["mainVector"])
     {
-        lot->addWining(ticket, winV);
+        if (lot->addWining(ticket, winV))
+        {
+            ticket["winning"] = GetSuperPrize(lot, fileMtx);
+            std::cout << "The super prize was played!!! WHeeeeeeee)" << std::endl;
+            std::cout << "winner's id = " << ticket["id"] << std::endl;
+        }
         if (ticket["saled"])
             amountOfWinnings += ticket["winning"].get<int>();
     }
@@ -569,4 +588,38 @@ json FinishLotterey::getStatusJson()
     json status = {};
     fd >> status;
     return status;
+}
+int FinishLotterey::GetSuperPrize(Sportloto* lot,std::mutex& fileMtx)
+{
+    int Superprize;
+    std::fstream fs("./conf/tickets.json");
+    json ticketsInfo = {};
+
+    fileMtx.lock();
+    fs >> ticketsInfo;
+    Superprize = ticketsInfo[lot->getName()]["superPrize"].get<int>();
+    ticketsInfo[lot->getName()]["superPrize"] = PrizeBanck;
+    fs.close();
+    fs.open("./conf/tickets.json", std::ios::out);
+    fs << ticketsInfo;
+    fileMtx.unlock();
+    
+    return Superprize;
+}
+void FinishLotterey::SetNewSuperPrize(Sportloto* lot, int delta, std::mutex& fileMtx)
+{
+    int Superprize;
+    std::fstream fs("./conf/tickets.json",std::ios::in);
+    json ticketsInfo = {};
+
+    fileMtx.lock();
+    fs >> ticketsInfo;
+    Superprize = ticketsInfo[lot->getName()]["superPrize"].get<int>();
+    std::cout << "Super = " << Superprize << std::endl;
+    ticketsInfo[lot->getName()]["superPrize"] = std::max(Superprize + delta, PrizeBanck);
+
+    fs.close();
+    fs.open("./conf/tickets.json", std::ios::out);
+    fs << ticketsInfo;
+    fileMtx.unlock();
 }

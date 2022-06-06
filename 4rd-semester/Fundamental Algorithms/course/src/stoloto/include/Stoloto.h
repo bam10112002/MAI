@@ -36,17 +36,19 @@ private:
     std::string getDatasetPath();
     json getStatusJson();
 
-    u32 finish_7_49(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize);
+    std::mutex fileMtx;
+
+    u32 finish_7_49(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize, std::mutex&);
     static void Thfinish_7_49(std::string path, Sportloto_7_49* lot, 
-                const std::vector<int>& winV, std::mutex & mtx, u32&);
+                const std::vector<int>& winV, std::mutex & mtx, u32&, std::mutex&);
 
-    u32 finish_6_45(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize);
+    u32 finish_6_45(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize, std::mutex&);
     static void Thfinish_6_45(std::string path, Sportloto_6_45* lot, 
-                const std::vector<int>& winV, std::mutex & mtx, u32&);
+                const std::vector<int>& winV, std::mutex & mtx, u32&, std::mutex&);
 
-    u32 finish_5_36(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize);
+    u32 finish_5_36(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize, std::mutex&);
     static void Thfinish_5_36(std::string path, Sportloto_5_36* lot,
-             const std::vector<std::vector<int>>& winV, std::mutex & mtx, u32&);
+             const std::vector<std::vector<int>>& winV, std::mutex & mtx, u32&, std::mutex&);
 
     u32 finish_4_20(Sportloto *lot, const u32 quantityOfTickets, const u64& fileSize);
     static void Thfinish_4_20(std::string path, Sportloto_4_20* lot, 
@@ -54,6 +56,8 @@ private:
     static void Thfinish_rec_4_20(std::string path, Sportloto_4_20* lot, 
             std::mutex & mtx, u32&);
 
+    static int GetSuperPrize(Sportloto* lot, std::mutex&);
+    static void SetNewSuperPrize(Sportloto* lot, int delta, std::mutex&);
 public:
     void operator()(Sportloto *lot, const u32 quantityOfTickets,
                     const u64& fileSize, const u64& income);

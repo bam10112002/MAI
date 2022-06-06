@@ -48,6 +48,7 @@ public:
                 }
             }
         }
+        return json();
     }
     static std::vector<json> FindTicketsByWinig(Sportloto* lot, int draw, int wining)
     {
