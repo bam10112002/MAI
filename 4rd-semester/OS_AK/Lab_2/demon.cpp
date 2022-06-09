@@ -11,18 +11,69 @@ namespace fs = std::filesystem;
 void coder  (std::string inputFileName, std::string outFileName, int blockSize);
 void decoder(std::string inputFileName, std::string outFileName, int blockSize);
 void testCheckError();
-void demon(std::string dirName);
-// void checkFile(std::string fileName);
+void demon(std::string dirName, std::ofstream& logStream);
 
-int main()
+int main(int argc, char* argv[])
 {
-    testCheckError();
+    int bits, deley;
+    std::string dirName, logName;
 
-    // coder  ("./datasets/in.txt", "./datasets/coded/text2.txt", 16);
-    // coder  ("./datasets/in.txt", "./datasets/coded/text1.txt", 16);
-    // decoder("./datasets/coded/text2.txt", "./datasets/rezult.txt", 16);
-    // demon("./datasets/coded/");
+    if (argc != 9)
+    {
+        cout << "argc is not valid, obtained value = " << argc << endl;
+        return -1;
+    }
+
+    for (int i = 1; i < 9; i += 2)
+    {
+        if (std::string(argv[i]) == "-n")
+            bits = std::stoi(argv[i+1]);
+
+        else if (std::string(argv[i]) == "-d")
+            dirName = std::string(argv[i+1]);
+
+        else if (std::string(argv[i]) == "-l")
+            logName = std::string(argv[i+1]);
+
+        else if (std::string(argv[i]) == "-t")
+            deley = std::stoi(argv[i+1]);
+            
+        else 
+            std::cerr << "undefind key: " << argv[i] <<  endl;  
+    }
+
+    pid_t parpid, sid;
+    
+    parpid = fork(); //создаем дочерний процесс
+    if(parpid < 0)
+    {
+        exit(1);
+    } 
+    else if(parpid != 0)
+    {
+        exit(0);
+    } 
+   
+    sid = setsid();//генерируем уникальный индекс процесса
+    if(sid < 0) {
+        exit(1);
+    }
+
+    close(STDIN_FILENO);//закрываем доступ к стандартным потокам ввода-вывода
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    std::ofstream of(logName);
+    of << "Demon Started" << endl;
+    while (1)
+    {
+        demon(dirName, of);
+        sleep(deley);
+    }
+    
+    return 0;
 }
+
 
 void testCheckError()
 {
@@ -34,10 +85,9 @@ void testCheckError()
     hm.set(10,0);
     cout << "Broken massive       : ";
     hm.binaryPrint();
-    int errInd = hm.ChangeError();
+    hm.ChangeError();
     cout << "Changed massive      : ";
     hm.binaryPrint();
-    cout << "Error detected in ind = " << errInd << endl;
 }
 
 void coder(std::string inputFileName, std::string outFileName, int blockSize)
@@ -111,7 +161,7 @@ void decoder(std::string inputFileName, std::string outFileName, int blockSize)
     input.close();
     out.close();
 }
-void demon(std::string dirName)
+void demon(std::string dirName, std::ofstream& logStream)
 {
     std::ifstream input;
     for (const auto& entry : fs::directory_iterator(dirName))
@@ -123,13 +173,19 @@ void demon(std::string dirName)
             cout << "ERROR open file in demon\n";
             return;
         }
+        int err, count = 0;
         while (!(input.eof()))
         {
             input >> hm;
-            int err = hm.ChangeError();
+            err = hm.ChangeError();
             if (err != -1)
-                cout << "Error in file" << entry.path() << "ERROR in " << err << "\t" << endl;
+                count++;
         }
+        if (count)
+            logStream << "Detected " << count << " errors";
+        else
+            logStream << "Error undefind";
+        logStream << ", file name " << entry.path() << endl;
         input.close();
     }
 }

@@ -14,15 +14,35 @@ void testCheckError();
 void demon(std::string dirName);
 // void checkFile(std::string fileName);
 
-int main()
+int main(int argc, char* argv[])
 {
-    testCheckError();
+    int bits;
+    std::string inName, outName;
+    if (argc != 7)
+    {
+        cout << "argc is not valid, obtained value = " << argc << endl;
+        return -1;
+    }
+    for (int i = 1; i < 7; i += 2)
+    {
+        if (std::string(argv[i]) == "-n")
+            bits = std::stoi(argv[i+1]);
 
-    // coder  ("./datasets/in.txt", "./datasets/coded/text2.txt", 16);
-    // coder  ("./datasets/in.txt", "./datasets/coded/text1.txt", 16);
-    // decoder("./datasets/coded/text2.txt", "./datasets/rezult.txt", 16);
-    // demon("./datasets/coded/");
+        else if (std::string(argv[i]) == "-i")
+            inName = std::string(argv[i+1]);
+
+        else if (std::string(argv[i]) == "-o")
+            outName = std::string(argv[i+1]);
+            
+        else 
+            std::cerr << "undefind key: " << argv[i] <<  endl;  
+    }
+
+    decoder(inName, outName, bits);
+
+    return 0;
 }
+
 
 void testCheckError()
 {
@@ -34,10 +54,9 @@ void testCheckError()
     hm.set(10,0);
     cout << "Broken massive       : ";
     hm.binaryPrint();
-    int errInd = hm.ChangeError();
+    hm.ChangeError();
     cout << "Changed massive      : ";
     hm.binaryPrint();
-    cout << "Error detected in ind = " << errInd << endl;
 }
 
 void coder(std::string inputFileName, std::string outFileName, int blockSize)
