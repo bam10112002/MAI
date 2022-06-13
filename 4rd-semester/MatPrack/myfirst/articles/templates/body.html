@@ -17,6 +17,7 @@
             margin-top: 40px;
             align-items: center;
             display: flex;
+            margin-bottom: 40px;
         }
         .add
         {
@@ -46,6 +47,10 @@
             text-align: center;
             margin: 5px;
         }  */
+        nav 
+        {
+            padding-top: 10px;
+        }
         nav a
         {
             padding: 0!important;
@@ -62,6 +67,8 @@
         <a href="/admin"             class="text-dark"> Admin  </a>
         <a href="{% url 'author' %}" class="text-dark"> Author </a>
         <a href="{% url 'articles' %}" class="text-dark"> Articles </a>
+        <a href="{% url 'list1' %}" class="text-dark"> Articles List 1</a>
+        <a href="{% url 'list2' %}" class="text-dark"> Articles List 2</a>
     </nav>
     {% block content %} index {% endblock %}
     </div>

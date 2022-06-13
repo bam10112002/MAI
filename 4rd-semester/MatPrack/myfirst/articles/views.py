@@ -15,6 +15,14 @@ def index(reqest):
     art_list = Article.objects.all()
     return render(reqest, 'list.html', {'art_list': art_list})
 
+def list1(reqest):
+    art_list = Article.objects.filter(chapter="1")
+    return render(reqest, 'list.html', {'art_list': art_list})
+
+def list2(reqest):
+    art_list = Article.objects.filter(chapter="2")
+    return render(reqest, 'list.html', {'art_list': art_list})
+
 def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
 

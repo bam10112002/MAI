@@ -3,23 +3,24 @@
 #include <sys/ioctl.h>
 #include <linux/kd.h>
 #include <stdio.h>
+#include <iostream>
 
-void flashing(int *fd_copy, int val)
+void Task_2(int *fd_copy, int val)
 {
-	int f = 0;
+	int code = 0;
 	for (;val > 0; val--)
 	{
-		f = val;
+		code = val;
 		if (val == 2)
-			f = 4;
+			code = 4;
 		else if (val == 3)
-			f = 5;
+			code = 5;
 		else if (val == 4)
-			f = 2;
+			code = 2;
 		else if (val == 5)
-			f = 3;
+			code = 3;
 			
-		ioctl(*fd_copy, KDSETLED, f);
+		ioctl(*fd_copy, KDSETLED, code);
 		sleep(2);		
 	}
 
@@ -33,6 +34,7 @@ void flashing(int *fd_copy, int val)
 	}
 }
 
+//Константы для азбуки морзе
 int morze[26] = {
 21, 1112, 1212, 112, 1, 1211, 122,
 1111, 11, 2221, 212, 1121, 22, 12,
@@ -40,6 +42,7 @@ int morze[26] = {
 2111, 221, 2112, 2212, 1122  
 };
 
+// Тире
 void dash(int *fb_copy)
 {
 	ioctl(*fb_copy, KDSETLED, 7);
@@ -48,6 +51,7 @@ void dash(int *fb_copy)
 	usleep(500000);
 }
 
+// Точка
 void dot(int *fb_copy)
 {
 	ioctl(*fb_copy, KDSETLED, 7);
@@ -56,20 +60,27 @@ void dot(int *fb_copy)
 	usleep(500000);
 }
 
-void trans_morze(int *fb_copy, char*sentence)
+
+/**
+* @brief Translate to morze
+* @param fd_copy  keyboard descriptor
+* @param sentence  text to translate 
+* @return void 
+*/
+void Task_1(int *fb_copy, char* sentence)
 {
-	int f;
+	int code;
 	for (int i = 0; sentence[i] != '\0'; i++)
 	{
-		f = morze[sentence[i] - 'a'];
-		while (f)
+		code = morze[sentence[i] - 'a'];
+		while (code)
 		{
-			if (f%10 == 2)
+			if (code%10 == 2)
 				dash(fb_copy);
 			else
 				dot(fb_copy);
 				 
-			f /= 10;
+			code /= 10;
 		}		
 	}
 
@@ -78,19 +89,26 @@ void trans_morze(int *fb_copy, char*sentence)
 
 int main(){
 	int fd = open("/dev/console", O_WRONLY);
-	int sk_value;
-	char *sen;
-	scanf("%d", &sk_value);
-	if (sk_value == 1)
+	int taskId;
+
+
+	cout << "input task number 1 or 2:\n>> ";
+    cin << taskId;
+    cout << endl;
+
+	if (taskId == 1)
 	{
-		printf("Value: ");
-		scanf("%d", &sk_value);
-		flashing(&fd, sk_value);
-	}
-	else{
+        char *sen;
 		printf("Sentence: ");
 		scanf("%s", sen);
-		trans_morze(&fd, sen);
+		Task_1(&fd, sen);
+	}
+	else
+    {
+        int val;
+        cout << "Value: ";
+        cin >> val;
+		Task_2(&fd, val);
 	}
 	close(fd);
 	return 0;

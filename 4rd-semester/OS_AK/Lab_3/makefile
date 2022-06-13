@@ -1,2 +1,2 @@
-all : main.cpp
-	g++ main.cpp -o bin/main
+all : main.cpp sourse.h
+	g++ main.cpp -o bin/main  -pthread

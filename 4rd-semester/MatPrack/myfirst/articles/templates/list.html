@@ -6,7 +6,9 @@
             <div class = "article">
                 <h2> {{ art.art_name }}     </h2>
                 <p>  {{art.body}}     </p>
-                <em>  {{art.pub_date}} </em>
+                <em>  {{art.pub_date}} </em><br>
+                <em>Раздел номер: </em>
+                <em> {{ art.chapter }}</em>
             </div>
         {% endfor%}
     {% endif %}
