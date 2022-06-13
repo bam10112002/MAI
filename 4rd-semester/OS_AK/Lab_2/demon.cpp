@@ -8,10 +8,8 @@
 namespace fs = std::filesystem;
 
 
-void coder  (std::string inputFileName, std::string outFileName, int blockSize);
-void decoder(std::string inputFileName, std::string outFileName, int blockSize);
-void testCheckError();
-void demon(std::string dirName, std::ofstream& logStream);
+void demon(std::string, std::ofstream&);
+void copyFile(std::string, std::string);
 
 int main(int argc, char* argv[])
 {
@@ -39,7 +37,7 @@ int main(int argc, char* argv[])
             deley = std::stoi(argv[i+1]);
             
         else 
-            std::cerr << "undefind key: " << argv[i] <<  endl;  
+            std::cerr << "undefined key: " << argv[i] <<  endl;  
     }
 
     pid_t parpid, sid;
@@ -67,6 +65,7 @@ int main(int argc, char* argv[])
     of << "Demon Started" << endl;
     while (1)
     {
+        // cout << "demon iter" << endl;
         demon(dirName, of);
         sleep(deley);
     }
@@ -74,93 +73,12 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-
-void testCheckError()
+void copyFile(std::string out, std::string in)
 {
-    std::vector<u8> vec = {'b', 'a'};
-    Hamming hm(16);
-    hm.setArr(vec);
-    cout << "Base Hamming massive : ";
-    hm.binaryPrint();
-    hm.set(10,0);
-    cout << "Broken massive       : ";
-    hm.binaryPrint();
-    hm.ChangeError();
-    cout << "Changed massive      : ";
-    hm.binaryPrint();
+    std::string cp = "cp " + out + " " + in;
+    system(cp.c_str());
 }
 
-void coder(std::string inputFileName, std::string outFileName, int blockSize)
-{
-    std::ifstream input(inputFileName);
-    std::ofstream out(outFileName);
-    if (!input || !out)
-    {
-        cout << "ERROR open file in coder" << endl;
-        return;
-    }
-
-    bool endFile = false;
-    while (!endFile)
-    {
-        std::vector<u8> arr((blockSize/8)+1);
-        Hamming hm(blockSize);
-        for (int i = 0 ; i < blockSize/8; i++)
-        {
-            char ch;
-            if(input.get(ch))
-            {
-                arr[i] = ch;
-            }
-            else
-            {   if (i == 0)
-                {
-                    input.close();
-                    out.close(); 
-                    return;
-                }
-                for (int j = i; j < blockSize/8; j++)
-                    arr[j] = 0;
-                endFile = !endFile;
-                break;
-            }
-        }
-        hm.setArr(arr);
-        out << hm;
-    }
-    input.close();
-    out.close();
-}
-void decoder(std::string inputFileName, std::string outFileName, int blockSize)
-{
-    std::ifstream input(inputFileName);
-    std::ofstream out(outFileName);
-    if (!input || !out)
-    {
-        cout << "ERROR open file in decoder\n";
-        return;
-    }
-    Hamming hm(blockSize);
-    while (!input.eof())
-    {
-        input >> hm;
-        int err = hm.ChangeError();
-        
-        if (err != -1)
-            cout << "ERROR in " << err << "\t" << endl;
-        std::vector<u8> vec;
-        vec = hm.getArr();
-        for (int i = 0; i < vec.size(); i++)
-        {
-            if (vec[i])
-                out << char(vec[i]);
-            if (vec[i] && err != -1)
-                cout << char(vec[i]);
-        }
-    }
-    input.close();
-    out.close();
-}
 void demon(std::string dirName, std::ofstream& logStream)
 {
     std::ifstream input;
@@ -168,11 +86,19 @@ void demon(std::string dirName, std::ofstream& logStream)
     {
         Hamming hm(16);
         input.open(entry.path());
+        std::ofstream tmp("./datasets/tmp");
+       
+        if (!logStream)
+        {
+            cout << "ERROR open log file\n";
+            return;
+        }
         if (!input)
         {
             cout << "ERROR open file in demon\n";
             return;
         }
+        
         int err, count = 0;
         while (!(input.eof()))
         {
@@ -180,6 +106,7 @@ void demon(std::string dirName, std::ofstream& logStream)
             err = hm.ChangeError();
             if (err != -1)
                 count++;
+            tmp << hm;
         }
         if (count)
             logStream << "Detected " << count << " errors";
@@ -187,5 +114,9 @@ void demon(std::string dirName, std::ofstream& logStream)
             logStream << "Error undefind";
         logStream << ", file name " << entry.path() << endl;
         input.close();
+        tmp.close();
+
+        if (count) 
+            copyFile("./datasets/tmp", entry.path());
     }
 }

@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
             outName = std::string(argv[i+1]);
             
         else 
-            std::cerr << "undefind key: " << argv[i] <<  endl;  
+            std::cerr << "undefined key: " << argv[i] <<  endl;  
     }
 
     decoder(inName, outName, bits);
@@ -43,80 +43,24 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-
-void testCheckError()
-{
-    std::vector<u8> vec = {'b', 'a'};
-    Hamming hm(16);
-    hm.setArr(vec);
-    cout << "Base Hamming massive : ";
-    hm.binaryPrint();
-    hm.set(10,0);
-    cout << "Broken massive       : ";
-    hm.binaryPrint();
-    hm.ChangeError();
-    cout << "Changed massive      : ";
-    hm.binaryPrint();
-}
-
-void coder(std::string inputFileName, std::string outFileName, int blockSize)
-{
-    std::ifstream input(inputFileName);
-    std::ofstream out(outFileName);
-    if (!input || !out)
-    {
-        cout << "ERROR open file in coder" << endl;
-        return;
-    }
-
-    bool endFile = false;
-    while (!endFile)
-    {
-        std::vector<u8> arr((blockSize/8)+1);
-        Hamming hm(blockSize);
-        for (int i = 0 ; i < blockSize/8; i++)
-        {
-            char ch;
-            if(input.get(ch))
-            {
-                arr[i] = ch;
-            }
-            else
-            {   if (i == 0)
-                {
-                    input.close();
-                    out.close(); 
-                    return;
-                }
-                for (int j = i; j < blockSize/8; j++)
-                    arr[j] = 0;
-                endFile = !endFile;
-                break;
-            }
-        }
-        hm.setArr(arr);
-        out << hm;
-    }
-    input.close();
-    out.close();
-}
 void decoder(std::string inputFileName, std::string outFileName, int blockSize)
 {
-    std::ifstream input(inputFileName);
-    std::ofstream out(outFileName);
+    std::fstream input(inputFileName);
+    std::fstream out(outFileName);
     if (!input || !out)
     {
         cout << "ERROR open file in decoder\n";
         return;
     }
     Hamming hm(blockSize);
+    char ch;
     while (!input.eof())
     {
         input >> hm;
         int err = hm.ChangeError();
         
         if (err != -1)
-            cout << "ERROR in " << err << "\t" << endl;
+            cout << "ERROR in " << err << "\tchars:";
         std::vector<u8> vec;
         vec = hm.getArr();
         for (int i = 0; i < vec.size(); i++)
@@ -124,31 +68,12 @@ void decoder(std::string inputFileName, std::string outFileName, int blockSize)
             if (vec[i])
                 out << char(vec[i]);
             if (vec[i] && err != -1)
-                cout << char(vec[i]);
+                cout << char(vec[i]); // Выводит сообщение об ошибке
         }
+        if (err != -1)
+            cout << endl;
+        // cout << input.gcount() << endl;
     }
     input.close();
     out.close();
-}
-void demon(std::string dirName)
-{
-    std::ifstream input;
-    for (const auto& entry : fs::directory_iterator(dirName))
-    {
-        Hamming hm(16);
-        input.open(entry.path());
-        if (!input)
-        {
-            cout << "ERROR open file in demon\n";
-            return;
-        }
-        while (!(input.eof()))
-        {
-            input >> hm;
-            int err = hm.ChangeError();
-            if (err != -1)
-                cout << "Error in file" << entry.path() << "ERROR in " << err << "\t" << endl;
-        }
-        input.close();
-    }
 }

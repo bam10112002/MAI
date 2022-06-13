@@ -16,12 +16,13 @@ void demon(std::string dirName);
 
 int main()
 {
-    testCheckError();
+    // testCheckError();
 
-    // coder  ("./datasets/in.txt", "./datasets/coded/text2.txt", 16);
+    coder  ("./datasets/in.txt", "./datasets/out.txt", 30);
     // coder  ("./datasets/in.txt", "./datasets/coded/text1.txt", 16);
-    // decoder("./datasets/coded/text2.txt", "./datasets/rezult.txt", 16);
+    decoder("./datasets/out.txt", "./datasets/rezult.txt", 30);
     // demon("./datasets/coded/");
+    
 }
 
 void testCheckError()
@@ -31,7 +32,7 @@ void testCheckError()
     hm.setArr(vec);
     cout << "Base Hamming massive : ";
     hm.binaryPrint();
-    hm.set(10,0);
+    // hm.set(10,0);
     cout << "Broken massive       : ";
     hm.binaryPrint();
     int errInd = hm.ChangeError();

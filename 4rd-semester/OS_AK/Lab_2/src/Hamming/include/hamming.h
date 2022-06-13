@@ -1,21 +1,15 @@
 #include <cmath>
 #include <iostream>
-#include <vector>
+#include "../src/HammingArray.h"
 
-using std::cout;
-using std::endl;
-using u8 = unsigned char;
 
 class Hamming
 {
 private:
-    std::vector<u8> hammingArray;
-    unsigned int hammingSize;
+    HammingArray hammingArray;
     unsigned int massiveSize;
 
     int GetAdditionalBits(int massiveSize);
-    int get(int ind) const;
-    bool inverse(int ind);
 
 public:
     Hamming(int massiveSize);
@@ -26,10 +20,9 @@ public:
     
     void setArr(const std::vector<u8>& array);
     std::vector<u8> getArr();
-    std::vector<u8> getHemmingArr();
+    // std::vector<u8> getHemmingArr();
     void binaryPrint() const;
     int ChangeError();
 
-    bool set(int ind, int val); // TODO: in private
     void CalckHemmingBits();
 };
