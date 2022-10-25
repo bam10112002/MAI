@@ -6,7 +6,6 @@ class Figure:
     def __init__(self) -> None:
         self.surfaces = []
         self.verts = []
-        # self.k = .5
 
     def edges(self):
         edges = []
@@ -40,6 +39,7 @@ class Figure:
         for i in range(len(self.verts)):
             self.verts[i] = (self.verts[i][0]+x, self.verts[i][1]+y, self.verts[i][2]+z) 
             
+
     def getVector(v_1, v_2):
         return (v_1[0]-v_2[0],v_1[1]-v_2[1],v_1[2]-v_2[2])
 
@@ -47,7 +47,8 @@ class Figure:
         vector_1 = Figure.getVector(self.verts[surface[0]],self.verts[surface[1]])
         vector_2 = Figure.getVector(self.verts[surface[1]],self.verts[surface[2]])
         return tuple(np.cross(vector_1, vector_2))
-            
+        
     def resize(self, k):
         for i in range(len(self.verts)):
             self.verts[i] = tuple(np.array(self.verts[i]) * k)
+            
