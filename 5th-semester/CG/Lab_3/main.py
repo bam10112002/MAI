@@ -1,11 +1,12 @@
-from OpenGL.GL import *
-from OpenGL.GLU import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QSlider
 from PyQt5 import QtCore
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from OpenGL.GLUT import *
 
 from Ellipsoid import Ellipsoid
-from Wedge import Wedge 
+from Wedge import Wedge
 import numpy as np
 
 class MainWindow(QWidget):
@@ -13,7 +14,7 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__()
         self.widget = glWidget(self)
         mainLayout = QHBoxLayout()
-        
+
         mainLayout.addWidget(self.widget)
         slider = QSlider(QtCore.Qt.Vertical)
         slider.valueChanged.connect(lambda val: self.widget.setReflection(val))
@@ -96,13 +97,13 @@ class glWidget(QGLWidget):
         glViewport(0, 0, w, h)
 
     def initializeGL(self):
-        glClearDepth(5.0)              
+        glClearDepth(5.0)
         glDepthFunc(GL_LESS)
         glEnable(GL_DEPTH_TEST)
         glShadeModel(GL_FLAT)
         glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()                    
-        gluPerspective(45.0, 1.33, 0.1, 50.0) 
+        glLoadIdentity()
+        gluPerspective(45.0, 1.33, 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
